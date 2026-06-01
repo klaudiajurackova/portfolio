@@ -1,0 +1,1699 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lead UX Designer — Klaudia · Case Study</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #F4EFE6;
+      --paper-soft: #EDE6DA;
+      --paper-deep: #E4DBCB;
+      --ink: #1A1814;
+      --ink-soft: #4A463E;
+      --ink-mute: #7A746A;
+      --ink-faint: #B8B0A2;
+      --rule: rgba(26, 24, 20, 0.14);
+      --rule-soft: rgba(26, 24, 20, 0.07);
+      --accent: #B5462C;
+      --serif: "Instrument Serif", "Times New Roman", serif;
+      --sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.5;
+      font-weight: 400;
+      font-feature-settings: "ss01", "ss02";
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+    }
+    body {
+      background-image:
+        radial-gradient(rgba(26,24,20,0.025) 1px, transparent 1px),
+        radial-gradient(rgba(26,24,20,0.018) 1px, transparent 1px);
+      background-size: 3px 3px, 7px 7px;
+      background-position: 0 0, 1px 2px;
+    }
+    ::selection { background: var(--accent); color: var(--paper); }
+    a { color: inherit; text-decoration: none; }
+
+    .shell {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+    @media (max-width: 700px) { .shell { padding: 0 20px; } }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 110;
+      background: color-mix(in oklab, var(--paper) 85%, transparent);
+      backdrop-filter: blur(12px) saturate(140%);
+      -webkit-backdrop-filter: blur(12px) saturate(140%);
+      border-bottom: 1px solid var(--rule-soft);
+    }
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+    .nav-mark {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 22px;
+      letter-spacing: -0.01em;
+    }
+    .nav-mark sup {
+      font-family: var(--mono);
+      font-style: normal;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      vertical-align: super;
+      margin-left: 4px;
+      color: var(--ink-mute);
+    }
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+    }
+    .nav-links a { position: relative; padding: 6px 0; }
+    .nav-links a:hover { color: var(--ink); }
+    .nav-burger {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 40px;
+      height: 40px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      position: relative;
+      z-index: 110;
+    }
+    .nav-burger-bar {
+      display: block;
+      width: 22px;
+      height: 1.5px;
+      background: var(--ink);
+      border-radius: 2px;
+      transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1),
+                  opacity 0.2s ease,
+                  top 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+      position: absolute;
+    }
+    .nav-burger-bar:nth-child(1) { top: calc(50% - 7px); }
+    .nav-burger-bar:nth-child(2) { top: calc(50% - 0.75px); }
+    .nav-burger-bar:nth-child(3) { top: calc(50% + 5.5px); }
+    .nav-burger[aria-expanded="true"] .nav-burger-bar:nth-child(1) { top: calc(50% - 0.75px); transform: rotate(45deg); }
+    .nav-burger[aria-expanded="true"] .nav-burger-bar:nth-child(2) { opacity: 0; transform: scaleX(0); }
+    .nav-burger[aria-expanded="true"] .nav-burger-bar:nth-child(3) { top: calc(50% - 0.75px); transform: rotate(-45deg); }
+    .nav-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: var(--paper);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: flex-start;
+      padding: 80px clamp(32px, 8vw, 64px) clamp(32px, 6vw, 48px);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-12px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+      transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.23, 1, 0.32, 1), visibility 0s linear 0.35s;
+    }
+    .nav-overlay.open {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+      transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.23, 1, 0.32, 1), visibility 0s linear 0s;
+    }
+    .nav-overlay-links {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .nav-overlay-links a {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      line-height: 1;
+      color: var(--ink-soft);
+      text-decoration: none;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.23, 1, 0.32, 1), color 0.15s ease;
+    }
+    .nav-overlay.open .nav-overlay-links a:nth-child(1) { opacity: 1; transform: translateY(0); transition-delay: 0.05s; }
+    .nav-overlay.open .nav-overlay-links a:nth-child(2) { opacity: 1; transform: translateY(0); transition-delay: 0.1s; }
+    .nav-overlay.open .nav-overlay-links a:nth-child(3) { opacity: 1; transform: translateY(0); transition-delay: 0.15s; }
+    .nav-overlay-links a:hover { color: var(--ink); }
+    @media (max-width: 760px) { .nav-links { display: none; } .nav-burger { display: flex; } }
+
+    .reveal { opacity: 1; transform: none; }
+    .reveal.in { opacity: 1; transform: translateY(0); }
+    @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
+
+    .cs-progress {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      z-index: 100;
+      background: transparent;
+      pointer-events: none;
+    }
+    .cs-progress .bar {
+      height: 100%;
+      width: 0;
+      background: var(--accent);
+      transition: width 0.1s linear;
+    }
+
+    .cs-shell {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+    .cs-hero-v2.cs-shell {
+      max-width: 880px;
+    }
+    @media (max-width: 900px) { .cs-shell { padding: 0 24px; } }
+
+    .cs-hero-v2 {
+      padding-top: clamp(64px, 10vw, 120px);
+      padding-bottom: clamp(40px, 6vw, 64px);
+      display: flex;
+      flex-direction: column;
+      gap: clamp(20px, 3vw, 40px);
+    }
+    @media (max-width: 900px) {
+      .cs-hero-v2 { padding-top: 56px; padding-bottom: 32px; }
+    }
+    .cs-hero-v2-eyebrow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 10px;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+    }
+    .cs-hero-v2-h {
+      font-family: var(--serif);
+      font-size: clamp(48px, 7vw, 120px);
+      line-height: 1.02;
+      letter-spacing: -0.025em;
+      font-weight: 400;
+      margin: 0;
+      color: var(--ink);
+      text-wrap: balance;
+    }
+    .cs-hero-v2-h em { font-style: italic; color: var(--accent); }
+    .cs-hero-v2-dek {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: clamp(22px, 2.2vw, 32px);
+      line-height: 1.3;
+      letter-spacing: -0.01em;
+      color: var(--ink-soft);
+      margin: 0;
+      max-width: 36ch;
+      text-wrap: pretty;
+    }
+    .cs-nda-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 12px;
+      border: 1px solid var(--rule);
+      border-radius: 999px;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      background: var(--paper-soft);
+    }
+    .cs-nda-pill::before {
+      content: "";
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .cs-meta {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: clamp(20px, 3vw, 40px);
+      padding: clamp(28px, 4vw, 44px) 32px;
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+      margin-top: clamp(32px, 4vw, 56px);
+    }
+    .cs-meta > div { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .cs-meta .k {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+    }
+    .cs-meta .v {
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--ink);
+      line-height: 1.3;
+      text-wrap: pretty;
+    }
+    .cs-meta .v em { font-style: italic; color: var(--accent); font-weight: 400; }
+    .info-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1.5px solid var(--ink-faint);
+      background: none;
+      cursor: pointer;
+      padding: 0;
+      flex-shrink: 0;
+      transition: border-color 0.15s ease, color 0.15s ease;
+      color: var(--ink-faint);
+      vertical-align: middle;
+      position: relative;
+      top: -1px;
+      margin-left: 5px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .info-btn::before {
+      content: '';
+      position: absolute;
+      inset: -12px;
+    }
+    .info-btn:hover { border-color: var(--ink); color: var(--ink); }
+    .info-btn svg { display: block; }
+    .info-tooltip {
+      position: fixed;
+      background: var(--ink);
+      color: var(--paper);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      padding: 6px 10px;
+      border-radius: 4px;
+      pointer-events: none;
+      z-index: 9999;
+    }
+    .info-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: var(--ink);
+    }
+    @media (max-width: 1000px) { .cs-meta { grid-template-columns: repeat(3, 1fr); row-gap: 24px; } }
+    @media (max-width: 540px) { .cs-meta { grid-template-columns: repeat(2, 1fr); } }
+
+    .cs-body {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: clamp(40px, 6vw, 96px);
+      padding-top: clamp(64px, 9vw, 120px);
+      padding-bottom: clamp(64px, 9vw, 120px);
+      align-items: start;
+    }
+    @media (max-width: 1000px) { .cs-body { grid-template-columns: 1fr; gap: 32px; } }
+
+    .cs-toc {
+      position: sticky;
+      top: 92px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-family: var(--mono);
+      font-size: 11.5px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .cs-toc .toc-label {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      color: var(--ink-mute);
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--rule);
+    }
+    .cs-toc a {
+      display: flex;
+      gap: 12px;
+      align-items: baseline;
+      padding: 6px 0;
+      color: var(--ink-mute);
+      transition: color 0.18s ease;
+    }
+    .cs-toc a .num { color: var(--ink-faint); font-size: 10px; letter-spacing: 0.1em; }
+    .cs-toc a:hover { color: var(--ink); }
+    .cs-toc a.active { color: var(--accent); }
+    .cs-toc a.active .num { color: var(--accent); }
+    @media (max-width: 1000px) { .cs-toc { display: none; } }
+
+    .cs-prose { max-width: 760px; min-width: 0; }
+    .cs-section {
+      padding: clamp(40px, 5vw, 72px) 0;
+      border-top: 1px solid var(--rule);
+    }
+    .cs-section:first-child { border-top: none; padding-top: 0; }
+    .cs-section > h2 {
+      font-family: var(--serif);
+      font-size: clamp(32px, 3.8vw, 56px);
+      line-height: 1;
+      letter-spacing: -0.025em;
+      font-weight: 400;
+      margin: 0 0 clamp(20px, 2.5vw, 32px);
+      color: var(--ink);
+      text-wrap: balance;
+    }
+    .cs-section > h2 em { font-style: italic; color: var(--accent); }
+    .cs-prose .lede {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: clamp(22px, 1.9vw, 28px);
+      line-height: 1.35;
+      letter-spacing: -0.008em;
+      color: var(--ink);
+      margin: 0 0 24px;
+      text-wrap: pretty;
+    }
+    .cs-prose p {
+      font-family: var(--sans);
+      font-size: 16.5px;
+      line-height: 1.65;
+      color: var(--ink-soft);
+      margin: 0 0 18px;
+      text-wrap: pretty;
+    }
+    .cs-prose p strong { color: var(--ink); font-weight: 500; }
+    .cs-prose p em { font-style: italic; color: var(--ink); }
+
+    .cs-pull {
+      margin: clamp(32px, 4vw, 56px) 0;
+      padding: clamp(20px, 3vw, 36px) 0 clamp(20px, 3vw, 36px) clamp(20px, 3vw, 32px);
+      border-left: 2px solid var(--accent);
+      font-family: var(--sans);
+      font-style: normal;
+      font-size: 16.5px;
+      line-height: 1.65;
+      letter-spacing: normal;
+      color: var(--ink-soft);
+      text-wrap: pretty;
+    }
+
+    .cs-note {
+      margin: 18px 0 28px;
+      padding: 14px 16px;
+      background: var(--paper-soft);
+      border-left: 2px solid var(--ink-faint);
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .cs-note .label {
+      flex-shrink: 0;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-mute);
+      padding-top: 1px;
+    }
+    .cs-note p { margin: 0; font-family: var(--sans); font-size: 14px; line-height: 1.5; color: var(--ink-soft); }
+
+    .cs-resp {
+      list-style: none;
+      margin: 0 0 clamp(20px, 2vw, 28px);
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .cs-resp li {
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      gap: 16px;
+      padding: 16px 0;
+      border-top: 1px solid var(--rule-soft);
+    }
+    .cs-resp li:first-child { border-top: none; }
+    .cs-resp li .num {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      color: var(--ink-mute);
+      padding-top: 4px;
+    }
+    .cs-resp li .t {
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.5;
+      color: var(--ink);
+      text-wrap: pretty;
+    }
+
+    .cs-artefact { margin: clamp(28px, 4vw, 48px) 0; }
+    .cs-artefact-board {
+      background: var(--paper-soft);
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: clamp(20px, 3vw, 32px);
+      overflow: auto;
+    }
+
+    .pipeline-swim { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .pipeline-swim svg { display: block; width: 100%; min-width: 900px; height: auto; }
+    .ps-band { fill: var(--paper-soft); }
+    .ps-h    { stroke: var(--rule); stroke-width: 1; }
+    .ps-v    { stroke: var(--rule); stroke-width: 1; stroke-dasharray: 3 4; opacity: 0.65; }
+    .ps-v-solid { stroke: var(--rule); stroke-width: 1; }
+    .ps-phase { fill: var(--ink-mute); font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+    .ps-role  { fill: var(--ink); font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 500; }
+    .ps-arrow { fill: none; stroke: var(--ink-mute); stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
+    .ps-rect  { stroke-width: 1.25; }
+    .ps-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.02em; font-weight: 500; }
+    .ps-node.ps-gd   .ps-rect  { fill: var(--paper); stroke: var(--ink); }
+    .ps-node.ps-gd   .ps-label { fill: var(--ink); }
+    .ps-node.ps-ux   .ps-rect  { fill: var(--accent); stroke: var(--accent); }
+    .ps-node.ps-ux   .ps-label { fill: var(--paper); }
+    .ps-node.ps-ui   .ps-rect  { fill: var(--paper); stroke: var(--accent); }
+    .ps-node.ps-ui   .ps-label { fill: var(--accent); }
+    .ps-node.ps-tech .ps-rect  { fill: var(--ink); stroke: var(--ink); }
+    .ps-node.ps-tech .ps-label { fill: var(--paper); }
+    .pipeline-swim-legend {
+      display: flex; flex-wrap: wrap; gap: 18px; margin-top: 18px;
+      font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-mute);
+    }
+    .psl-item { display: inline-flex; align-items: center; gap: 8px; }
+    .psl-sw { display: inline-block; width: 18px; height: 12px; border-radius: 2px; border: 1.25px solid var(--ink); background: var(--paper); }
+    .psl-item.ps-ux   .psl-sw { background: var(--accent); border-color: var(--accent); }
+    .psl-item.ps-ui   .psl-sw { background: var(--paper); border-color: var(--accent); }
+    .psl-item.ps-tech .psl-sw { background: var(--ink); border-color: var(--ink); }
+    @media (max-width: 700px) { .pipeline-swim-legend { gap: 12px; font-size: 9.5px; } }
+
+    .doc-template { width: 100%; background: var(--paper); border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; }
+    .doc-row {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) 2fr;
+      gap: 18px;
+      padding: 12px 18px;
+      border-top: 1px solid var(--rule);
+      align-items: baseline;
+      font-family: var(--sans);
+      font-size: 13.5px;
+      line-height: 1.45;
+      color: var(--ink);
+    }
+    .doc-row:first-child { border-top: 0; }
+    .doc-row--head {
+      background: var(--ink); color: var(--paper); padding: 14px 18px;
+      display: flex; justify-content: space-between; align-items: baseline;
+      font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    }
+    .doc-title { color: var(--paper); font-weight: 500; }
+    .doc-meta { color: rgba(244, 239, 230, 0.55); font-size: 10px; }
+    .doc-k { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-mute); font-weight: 500; }
+    .doc-v { color: var(--ink); }
+    .doc-v.is-placeholder { color: var(--ink-faint); font-style: italic; }
+    .doc-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--ink); background: var(--paper-soft); border: 1px solid var(--rule);
+      padding: 4px 10px 4px 8px; border-radius: 999px; font-style: normal;
+    }
+    .doc-pill::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+    .doc-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--mono); font-size: 11.5px; color: var(--accent);
+      font-style: normal; text-decoration: none; border-bottom: 1px dashed currentColor; padding-bottom: 1px;
+    }
+    .doc-link::after { content: "↗"; font-size: 10px; }
+    .doc-video { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11.5px; color: var(--ink); font-style: normal; }
+    .doc-video-thumb {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 20px; height: 14px; border-radius: 2px; background: var(--ink); color: var(--paper); flex-shrink: 0;
+    }
+    @media (max-width: 600px) { .doc-row { grid-template-columns: 1fr; gap: 4px; } }
+
+    .mf { display: flex; flex-direction: column; gap: 0; background: var(--paper); border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; }
+    .mf-row { display: grid; grid-template-columns: 96px 1fr; gap: 24px; padding: 22px 20px; border-top: 1px solid var(--rule); align-items: start; }
+    .mf-row:first-child { border-top: 0; }
+    .mf-step { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); padding-top: 4px; }
+    .mf-content { display: flex; flex-direction: column; gap: 12px; }
+    .mf-title { font-family: var(--serif); font-size: 22px; line-height: 1.15; letter-spacing: -0.012em; margin: 0; color: var(--ink); font-weight: 400; }
+    .mf-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+    .mf-list li { display: grid; grid-template-columns: 60px 1fr; gap: 12px; align-items: baseline; }
+    .mf-list .k { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-mute); }
+    .mf-list .v { font-family: var(--sans); font-size: 14px; line-height: 1.45; color: var(--ink); text-wrap: pretty; }
+    @media (max-width: 600px) {
+      .mf-row { grid-template-columns: 1fr; gap: 10px; padding: 18px 16px; }
+      .mf-list li { grid-template-columns: 50px 1fr; gap: 10px; }
+      .mf-title { font-size: 19px; }
+    }
+
+    .roadmap-v2 { width: 100%; display: flex; flex-direction: column; gap: 16px; }
+    .rm-v2-header { display: flex; justify-content: space-between; align-items: baseline; gap: 24px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; }
+    .rm-v2-title { color: var(--ink); font-weight: 500; }
+    .rm-v2-deadline { color: var(--accent); }
+    .rm-v2-grid {
+      position: relative;
+      display: grid;
+      grid-template-columns: 140px repeat(var(--weeks), 1fr);
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      margin-top: 32px;
+    }
+    .rm-v2-corner { background: var(--ink); border-radius: 4px 0 0 0; }
+    .rm-v2-week:last-of-type { border-radius: 0 4px 0 0; }
+    .rm-v2-week { background: var(--ink); color: var(--paper); font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; padding: 12px 6px; text-align: center; border-left: 1px solid rgba(255,255,255,0.06); }
+    .rm-v2-person { background: var(--paper-soft); padding: 16px 14px; display: flex; flex-direction: column; gap: 4px; justify-content: center; border-top: 1px solid var(--rule); }
+    .rm-v2-person .role { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-mute); }
+    .rm-v2-person .name { font-family: var(--serif); font-size: 18px; line-height: 1.1; letter-spacing: -0.01em; color: var(--ink); }
+    .rm-v2-track {
+      grid-column: 2 / -1;
+      display: grid;
+      grid-template-columns: repeat(var(--weeks), 1fr);
+      padding: 12px 0;
+      background-color: var(--paper);
+      background-image: repeating-linear-gradient(to right, transparent 0, transparent calc((100% / var(--weeks)) - 1px), var(--rule) calc((100% / var(--weeks)) - 1px), var(--rule) calc(100% / var(--weeks)));
+      border-top: 1px solid var(--rule);
+      min-height: 64px;
+      align-items: center;
+    }
+    .rm-v2-bar {
+      grid-row: 1;
+      margin: 0 4px;
+      padding: 8px 10px;
+      border-radius: 3px;
+      font-family: var(--mono);
+      font-size: 10.5px;
+      line-height: 1.2;
+      letter-spacing: 0.02em;
+      color: var(--ink);
+      background: color-mix(in oklab, var(--accent) 14%, var(--paper));
+      border: 1px solid color-mix(in oklab, var(--accent) 30%, transparent);
+      white-space: normal;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      text-wrap: pretty;
+      min-width: 0;
+    }
+    .rm-v2-bar.is-accent { background: var(--accent); color: var(--paper); border-color: var(--accent); }
+    .rm-v2-bar.is-accent::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--paper); flex-shrink: 0; }
+    .rm-v2-marker {
+      position: absolute;
+      top: 38px; bottom: 0;
+      width: 0;
+      border-left: 1.5px dashed var(--ink);
+      left: calc(140px + (var(--at) / var(--weeks)) * (100% - 140px));
+      pointer-events: none;
+      z-index: 3;
+    }
+    .rm-v2-marker-tag {
+      position: absolute;
+      top: -56px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--mono);
+      font-size: 9.5px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink);
+      background: var(--paper);
+      padding: 5px 9px;
+      border: 1px solid var(--ink);
+      border-radius: 2px;
+      white-space: nowrap;
+    }
+    .rm-v2-marker-tag::after {
+      content: "";
+      position: absolute;
+      bottom: -18px; left: 50%;
+      width: 0; height: 18px;
+      border-left: 1.5px dashed currentColor;
+      transform: translateX(-50%);
+      opacity: 0.5;
+    }
+    .rm-v2-marker--ux { border-left-color: color-mix(in oklab, var(--ink) 55%, var(--paper)); }
+    .rm-v2-marker--ux .rm-v2-marker-tag { border-color: color-mix(in oklab, var(--ink) 55%, var(--paper)); color: color-mix(in oklab, var(--ink) 75%, var(--paper)); }
+    .rm-v2-marker--ui { border-left-color: var(--accent); }
+    .rm-v2-marker--ui .rm-v2-marker-tag { background: var(--accent); color: var(--paper); border-color: var(--accent); }
+    .rm-v2-legend { display: flex; flex-wrap: wrap; gap: 20px; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-mute); }
+    .rm-v2-legend-item { display: inline-flex; align-items: center; gap: 8px; }
+    .rm-v2-legend-swatch { display: inline-block; width: 18px; height: 12px; border-radius: 2px; background: color-mix(in oklab, var(--accent) 14%, var(--paper)); border: 1px solid color-mix(in oklab, var(--accent) 30%, transparent); }
+    .rm-v2-legend-cutoff { display: inline-block; width: 0; height: 14px; border-left: 1.5px dashed var(--ink); }
+    @media (max-width: 800px) {
+      .rm-v2-grid { grid-template-columns: 96px repeat(var(--weeks), 1fr); margin-top: 28px; }
+      .rm-v2-marker { left: calc(96px + (var(--at) / var(--weeks)) * (100% - 96px)); }
+      .rm-v2-week { font-size: 9px; padding: 8px 2px; letter-spacing: 0.04em; }
+      .rm-v2-person { padding: 12px 10px; }
+      .rm-v2-person .name { font-size: 13px; }
+      .rm-v2-person .role { font-size: 9px; }
+      .rm-v2-bar { font-size: 9px; padding: 5px 5px; margin: 0 2px; }
+      .rm-v2-marker-tag { font-size: 8px; padding: 3px 5px; top: -48px; letter-spacing: 0.06em; }
+      .rm-v2-marker-tag::after { bottom: -14px; height: 14px; }
+    }
+    @media (max-width: 600px) {
+      .rm-v2-scroll-outer {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -webkit-mask-image: linear-gradient(to right, black calc(100% - 48px), transparent 100%);
+        mask-image: linear-gradient(to right, black calc(100% - 48px), transparent 100%);
+      }
+      .rm-v2-scroll-outer::-webkit-scrollbar { display: none; }
+      .rm-v2-grid {
+        min-width: 560px;
+        grid-template-columns: 120px repeat(var(--weeks), minmax(48px, 1fr)) !important;
+        margin-top: 32px !important;
+      }
+      .rm-v2-marker {
+        left: calc(120px + (var(--at) / var(--weeks)) * (100% - 120px)) !important;
+      }
+      .rm-v2-corner,
+      .rm-v2-person {
+        position: sticky;
+        left: 0;
+        z-index: 4;
+        box-shadow: 3px 0 8px rgba(0,0,0,0.07);
+      }
+      .rm-v2-week { font-size: 10px; padding: 10px 4px; letter-spacing: 0.06em; }
+      .rm-v2-person { padding: 14px 12px; }
+      .rm-v2-person .name { font-size: 15px; }
+      .rm-v2-person .role { font-size: 9px; }
+      .rm-v2-bar { font-size: 9.5px; padding: 6px 6px; margin: 0 2px; }
+    }
+
+    .cs-closing {
+      padding-top: clamp(80px, 12vw, 160px);
+      padding-bottom: clamp(64px, 10vw, 120px);
+      border-top: 1px solid var(--rule);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(48px, 6vw, 96px);
+      align-items: end;
+    }
+    .cs-closing .h {
+      font-family: var(--serif);
+      font-size: clamp(48px, 7vw, 112px);
+      line-height: 0.98;
+      letter-spacing: -0.025em;
+      font-weight: 400;
+      margin: 0;
+      color: var(--ink);
+      text-wrap: balance;
+    }
+    .cs-closing .h em { font-style: italic; }
+    .cs-closing .h em a { color: var(--accent); border-bottom: 2px solid currentColor; padding-bottom: 2px; transition: color 0.2s ease; }
+    .cs-closing .h em a:hover { color: var(--ink); }
+    .cs-closing .links { display: flex; flex-direction: column; }
+    .cs-closing .links a {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 0;
+      border-top: 1px solid var(--rule);
+      font-family: var(--mono);
+      font-size: 11.5px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      transition: color 0.2s ease, padding 0.2s ease;
+    }
+    .cs-closing .links a:last-child { border-bottom: 1px solid var(--rule); }
+    .cs-closing .links a:hover { color: var(--accent); padding-left: 4px; }
+    @media (max-width: 900px) { .cs-closing { grid-template-columns: 1fr; gap: 32px; } }
+
+    /* ── Chart preview + fullscreen modal (mobile only) ── */
+    .chart-desktop-direct { display: block; }
+    .chart-mobile-viewer  { display: none; }
+    @media (max-width: 700px) {
+      .chart-desktop-direct { display: none; }
+      .chart-mobile-viewer  { display: block; }
+    }
+    .chart-preview-outer {
+      position: relative;
+      overflow: hidden;
+      pointer-events: none;
+      user-select: none;
+      border-radius: 4px;
+    }
+    .chart-preview-outer .pipeline-swim,
+    .chart-preview-outer .rm-v2-scroll-outer { overflow: hidden; scrollbar-width: none; }
+    .chart-preview-outer .rm-v2-corner,
+    .chart-preview-outer .rm-v2-person { position: static; box-shadow: none; }
+    .chart-preview-fade {
+      position: absolute;
+      top: 0; right: 0; bottom: 0;
+      width: 80px;
+      background: linear-gradient(to right, transparent, var(--paper-soft));
+      pointer-events: none;
+      z-index: 2;
+    }
+    .chart-view-btn-wrap { margin-top: 16px; }
+    .chart-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      border-radius: 999px;
+      border: 1.5px solid var(--ink);
+      background: transparent;
+      color: var(--ink);
+      cursor: pointer;
+      transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+      white-space: nowrap;
+    }
+    .chart-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(181,70,44,0.06); }
+    .chart-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      background: var(--paper);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .chart-modal-bar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--rule);
+      flex-shrink: 0;
+      background: var(--paper);
+    }
+    .chart-modal-close {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: 1.5px solid var(--ink);
+      background: transparent;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: border-color 0.2s ease, color 0.2s ease;
+    }
+    .chart-modal-close:hover { border-color: var(--accent); color: var(--accent); }
+    .chart-modal-content {
+      flex: 1;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 24px 16px 40px;
+    }
+    .chart-modal .rm-v2-corner,
+    .chart-modal .rm-v2-person { position: static !important; box-shadow: none !important; }
+    .chart-modal-rotate {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 40px;
+      text-align: center;
+      color: var(--ink-mute);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .chart-modal-rotate svg { opacity: 0.4; }
+    @media (orientation: portrait) {
+      .chart-modal .chart-modal-content { display: none; }
+      .chart-modal-rotate { display: flex; }
+    }
+    @media (orientation: landscape) {
+      .chart-modal .chart-modal-content { display: block; }
+      .chart-modal-rotate { display: none; }
+    }
+  </style>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+/* global React, ReactDOM */
+const { useState, useEffect, useRef } = React;
+
+// ── Reveal hook ─────────────────────────────────────────
+function useReveal() {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add('in');
+            io.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return ref;
+}
+
+// ── Sub-nav ─────────────────────────────────────────────
+function SubNav() {
+  return null;
+}
+
+// ── Hero ────────────────────────────────────────────────
+function Hero() {
+  return (
+    <header className="cs-shell cs-hero-v2">
+      <div className="cs-hero-v2-eyebrow">
+        <span>Grip Studios</span>
+        <span>·</span>
+        <span>PC &amp; Console</span>
+        <span>·</span>
+        <span className="cs-nda-pill">NDA</span>
+      </div>
+      <h1 className="cs-hero-v2-h">Lead UX Designer</h1>
+      <p className="cs-hero-v2-dek">
+        Joined during pre-production on a new PC and console title.
+        No UX discipline existed yet. My first job was to build one.
+      </p>
+    </header>);
+
+}
+
+// ── Info tooltip button ─────────────────────────────────
+function InfoBtn({ tip }) {
+  const [pos, setPos] = React.useState(null);
+  const btnRef = React.useRef(null);
+  const open = () => {
+    const r = btnRef.current.getBoundingClientRect();
+    setPos({ top: r.top - 8, left: r.left + r.width / 2 });
+  };
+  const close = () => setPos(null);
+  React.useEffect(() => {
+    if (!pos) return;
+    const handler = () => close();
+    document.addEventListener('pointerdown', handler, true);
+    return () => document.removeEventListener('pointerdown', handler, true);
+  }, [pos]);
+  return (
+    <>
+      <button ref={btnRef} className="info-btn" aria-label="More info"
+        onClick={(e) => { e.stopPropagation(); e.preventDefault(); pos ? close() : open(); }}>
+        <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor">
+          <rect x="3.2" y="3" width="1.6" height="3.8" rx="0.8"/>
+          <circle cx="4" cy="1.5" r="0.9"/>
+        </svg>
+      </button>
+      {pos && ReactDOM.createPortal(
+        <div className="info-tooltip" style={{ top: pos.top, left: pos.left, transform: 'translateX(-50%) translateY(-100%)' }}>
+          {tip}
+        </div>,
+        document.body
+      )}
+    </>
+  );
+}
+
+// ── Meta strip ──────────────────────────────────────────
+function Meta() {
+  const items = [
+  ["Studio", "Grip Studios"],
+  ["Platform", "PC · Console"],
+  ["My role", "Lead UX Designer"],
+  ["Stage", <span key="stage">Pre-prod → Vertical slice&#8203;<InfoBtn tip="First playable milestone" /></span>],
+["Team", "2 UX + 1 UI"]];
+
+  return (
+    <section className="cs-shell cs-meta">
+      {items.map(([k, v], i) =>
+      <div key={i}>
+          <span className="k">{k}</span>
+          <span className="v">{v}</span>
+        </div>
+      )}
+    </section>);
+
+}
+
+// ── TOC ─────────────────────────────────────────────────
+const SECTIONS = [
+{ id: "context", num: "00", label: "Context" },
+{ id: "what-i-did", num: "01", label: "What I did" },
+{ id: "pipeline", num: "02", label: "UX Pipeline" },
+{ id: "documentation", num: "03", label: "Documentation" },
+{ id: "meetings", num: "04", label: "Meetings" },
+{ id: "roadmap", num: "05", label: "UX Roadmap" },
+{ id: "outcome", num: "06", label: "Outcome" }];
+
+
+function TOC() {
+  const [active, setActive] = useState("context");
+  useEffect(() => {
+    const targets = SECTIONS.map((s) => document.getElementById(s.id)).filter(Boolean);
+    if (!targets.length) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) setActive(e.target.id);
+        });
+      },
+      { rootMargin: "-30% 0px -60% 0px", threshold: 0 }
+    );
+    targets.forEach((t) => io.observe(t));
+    return () => io.disconnect();
+  }, []);
+  return (
+    <aside className="cs-toc">
+      <span className="toc-label">On this page</span>
+      {SECTIONS.map((s) =>
+      <a key={s.id} href={`#${s.id}`} className={active === s.id ? "active" : ""}>
+          <span className="num">{s.num}</span>
+          <span>{s.label}</span>
+        </a>
+      )}
+    </aside>);
+
+}
+
+// ── Building blocks ─────────────────────────────────────
+function Section({ id, num, title, children }) {
+  const ref = useReveal();
+  return (
+    <section className="cs-section reveal" id={id} ref={ref}>
+      <h2 dangerouslySetInnerHTML={{ __html: title }} />
+      {children}
+    </section>);
+
+}
+
+function P({ children }) {return <p>{children}</p>;}
+
+function PullQuote({ children }) {
+  return <blockquote className="cs-pull">{children}</blockquote>;
+}
+
+function Note({ label, children }) {
+  return (
+    <aside className="cs-note">
+      <span className="label">{label}</span>
+      <p>{children}</p>
+    </aside>);
+
+}
+
+// ── Artefact wrapper (caption + diagram) ────────────────
+function Artefact({ figNum, label, children }) {
+  return (
+    <figure className="cs-artefact">
+      <div className="cs-artefact-board">
+        {children}
+      </div>
+    </figure>);
+
+}
+
+// ── Chart preview + fullscreen modal (mobile only) ──────
+function ChartViewer({ label, children }) {
+  const [open, setOpen] = React.useState(false);
+  React.useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [open]);
+  return (
+    <>
+      <div className="chart-preview-outer" aria-hidden="true">
+        {children}
+        <div className="chart-preview-fade" />
+      </div>
+      <div className="chart-view-btn-wrap">
+        <button className="chart-btn" onClick={() => setOpen(true)}>VIEW FULL CHART</button>
+      </div>
+      {open && ReactDOM.createPortal(
+        <div className="chart-modal" role="dialog" aria-modal="true" aria-label={label}>
+          <div className="chart-modal-bar">
+            <button className="chart-modal-close" onClick={() => setOpen(false)} aria-label="Close">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <line x1="1" y1="1" x2="13" y2="13" /><line x1="13" y1="1" x2="1" y2="13" />
+              </svg>
+            </button>
+          </div>
+          <div className="chart-modal-content">{children}</div>
+          <div className="chart-modal-rotate">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="10" y="6" width="28" height="36" rx="4" />
+              <path d="M30 42 C38 42 44 36 44 28" />
+              <path d="M41 24 L44 28 L47 24" />
+            </svg>
+            <span>Rotate device to view</span>
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
+  );
+}
+
+// ── ARTEFACT — Pipeline diagram (swim lanes) ────────────
+function PipelineDiagram() {
+  // Layout constants (kept simple — see SVG below for actual positions)
+  const phases = [
+    "Brief", "Discovery", "GD review", "Lo-fi", "GD review",
+    "Hi-fi", "GD review", "UI design", "UX review", "Sign-off"
+  ];
+  // x-centers per phase (100px columns starting at x=110)
+  const cx = (i) => 160 + i * 100;
+
+  // Nodes: lane index (0..3) + phase index, label
+  const nodes = [
+    { lane: 0, ph: 0, t: "Brief",     v: "gd" },
+    { lane: 1, ph: 1, t: "Discovery", v: "ux" },
+    { lane: 0, ph: 2, t: "GD review", v: "gd" },
+    { lane: 1, ph: 3, t: "Lo-fi",     v: "ux" },
+    { lane: 0, ph: 4, t: "GD review", v: "gd" },
+    { lane: 1, ph: 5, t: "Hi-fi",     v: "ux" },
+    { lane: 0, ph: 6, t: "GD review", v: "gd" },
+    { lane: 2, ph: 7, t: "UI design", v: "ui" },
+    { lane: 1, ph: 8, t: "UX review", v: "ux" },
+    { lane: 0, ph: 9, t: "Sign-off",  v: "gd" },
+    { lane: 3, ph: 9, t: "Build",     v: "tech" }
+  ];
+
+  // Lane y-centers
+  const ly = [80, 165, 250, 325];
+  // Node positioning (rect top-left and label)
+  const nodeRect = (n) => {
+    const cyVal = ly[n.lane];
+    return { x: cx(n.ph) - 42, y: cyVal - 19, w: 84, h: 38, cx: cx(n.ph), cy: cyVal };
+  };
+
+  // Arrows — drawn between consecutive nodes through the lane gutter (y=120 or y=210)
+  // Format: [fromIdx, toIdx, viaY]
+  const arrows = [
+    [0, 1, 120],
+    [1, 2, 120],
+    [2, 3, 120],
+    [3, 4, 120],
+    [4, 5, 120],
+    [5, 6, 120],
+    [6, 7, 210], // GD review → UI design (crosses both gutters)
+    [7, 8, 210], // UI design → UX review (back up)
+    [8, 9, 120], // UX review → Sign-off
+    [9, 10, "side"] // Sign-off → Build (down the side)
+  ];
+
+  const arrowPath = (fromIdx, toIdx, viaY) => {
+    const a = nodeRect(nodes[fromIdx]);
+    const b = nodeRect(nodes[toIdx]);
+
+    if (viaY === "side") {
+      // From Sign-off (right edge) down outside, then into Build (right edge)
+      const sx = a.x + a.w;
+      const sy = a.cy;
+      const ex = b.x + b.w;
+      const ey = b.cy;
+      return `M${sx + 2},${sy} L${sx + 8},${sy} L${sx + 8},${ey} L${ex + 2},${ey}`;
+    }
+
+    // Vertical-out from top or bottom of "from", run along gutter, drop into top/bottom of "to"
+    const fromTop = a.cy < viaY; // node is above the gutter → exit downward
+    const toTop = b.cy < viaY;   // node is above the gutter → enter from below
+
+    const sx = a.cx;
+    const sy = fromTop ? a.y + a.h : a.y; // exit
+    const ex = b.cx;
+    const ey = toTop ? b.y + b.h : b.y;   // enter
+
+    return `M${sx},${sy} L${sx},${viaY} L${ex},${viaY} L${ex},${ey}`;
+  };
+
+  return (
+    <div className="pipeline-swim">
+      <svg
+        viewBox="0 0 1120 380"
+        preserveAspectRatio="xMidYMid meet"
+        role="img"
+        aria-label="UX pipeline swim lanes: brief through sign-off, with build handoff to UI tech">
+
+        <defs>
+          <marker id="ps-arr" viewBox="0 0 10 10" refX="8" refY="5"
+                  markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1 L8 5 L2 9" fill="none"
+                  stroke="context-stroke" strokeWidth="1.5"
+                  strokeLinecap="round" strokeLinejoin="round" />
+          </marker>
+        </defs>
+
+        {/* Lane bands */}
+        <rect className="ps-band" x="110" y="40"  width="1000" height="80" />
+        <rect className="ps-band" x="110" y="210" width="1000" height="80" />
+
+        {/* Horizontal lane rules */}
+        {[40, 120, 210, 290, 360].map((y) => (
+          <line key={y} className="ps-h" x1="0" y1={y} x2="1120" y2={y} />
+        ))}
+
+        {/* Role column divider */}
+        <line className="ps-v-solid" x1="110" y1="0" x2="110" y2="380" />
+
+        {/* Phase column dividers (dashed) */}
+        {[210, 310, 410, 510, 610, 710, 810, 910, 1010].map((x) => (
+          <line key={x} className="ps-v" x1={x} y1="40" x2={x} y2="360" />
+        ))}
+
+        {/* Phase header labels */}
+        {phases.map((p, i) => (
+          <text key={i} className="ps-phase" x={cx(i)} y="22" textAnchor="middle">{p}</text>
+        ))}
+
+        {/* Role labels */}
+        {["Game designer", "UX designer", "UI designer", "UI tech"].map((r, i) => (
+          <text key={r} className="ps-role" x="55" y={ly[i]} textAnchor="middle" dominantBaseline="central">{r}</text>
+        ))}
+
+        {/* Arrows */}
+        {arrows.map(([f, t, via], i) => (
+          <path
+            key={i}
+            className="ps-arrow"
+            d={arrowPath(f, t, via)}
+            markerEnd="url(#ps-arr)" />
+        ))}
+
+        {/* Nodes */}
+        {nodes.map((n, i) => {
+          const r = nodeRect(n);
+          return (
+            <g key={i} className={`ps-node ps-${n.v}`}>
+              <rect className="ps-rect" x={r.x} y={r.y} width={r.w} height={r.h} rx="6" />
+              <text className="ps-label" x={r.cx} y={r.cy} textAnchor="middle" dominantBaseline="central">{n.t}</text>
+            </g>
+          );
+        })}
+
+      </svg>
+
+      <div className="pipeline-swim-legend">
+        <span className="psl-item ps-gd"><span className="psl-sw" /> Game designer</span>
+        <span className="psl-item ps-ux"><span className="psl-sw" /> UX designer</span>
+        <span className="psl-item ps-ui"><span className="psl-sw" /> UI designer</span>
+        <span className="psl-item ps-tech"><span className="psl-sw" /> UI tech</span>
+      </div>
+    </div>
+  );
+}
+
+// ── ARTEFACT — Documentation template ───────────────────
+function DocTemplate() {
+  const rows = [
+  ["Game Design Owner", "Name of game designer", true],
+  ["Link to Game Design Documentation", "Link", false, "link"],
+  ["UX Design Owner", "Name of UX designer", true],
+  ["UI Design Owner", "Name of UI designer", true],
+  ["UI Tech Owner", "Name of UI engineer", true],
+  ["Jira Ticket", "PROJ-XXXX", false, "link"],
+  ["Status & Milestone", "In progress · Vertical slice", false, "pill"],
+  ["Video Prototype", "Embedded video walkthrough", false, "video"],
+  ["Final UI", "Figma link", false, "link"],
+  ["UX Design", "Figma link — flow, edge cases, platform differences", false, "link"],
+  ["Design Rationale", "Why this approach was chosen", true],
+  ["Design Decisions", "Key decisions made along the way", true],
+  ["Additional Information", "Workshop notes, research findings, references", true]];
+
+  return (
+    <div className="doc-template">
+      <div className="doc-row doc-row--head">
+        <span className="doc-title">Feature Documentation Template</span>
+      </div>
+      {rows.map(([k, v, placeholder, kind], i) =>
+      <div className="doc-row" key={i}>
+          <span className="doc-k">{k}</span>
+          <span className={`doc-v ${placeholder ? 'is-placeholder' : ''}`}>
+            {kind === 'pill' ? <span className="doc-pill">{v}</span> :
+          kind === 'link' ? <span className="doc-link">{v}</span> :
+          kind === 'video' ?
+          <span className="doc-video">
+                 <span className="doc-video-thumb" aria-hidden="true">
+                   <svg viewBox="0 0 14 14" width="10" height="10" fill="currentColor">
+                     <path d="M3 2 L11 7 L3 12 Z" />
+                   </svg>
+                 </span>
+                 <span>{v}</span>
+               </span> :
+
+          v}
+          </span>
+        </div>
+      )}
+    </div>);
+
+}
+
+// ── ARTEFACT — Meeting fundamentals ─────────────────────
+function MeetingFundamentals() {
+  const steps = [
+  {
+    n: "01", title: "Goal of the meeting",
+    what: "A clear, written reason this meeting exists. If there isn't one, the meeting shouldn't happen.",
+    when: "Sent ahead of the meeting.",
+    who: "Meeting organiser."
+  },
+  {
+    n: "02", title: "Agenda",
+    what: "Topics and questions to be discussed so each participant can prepare ahead.",
+    when: "Sent ahead of the meeting.",
+    who: "Meeting organiser."
+  },
+  {
+    n: "03", title: "Facilitator",
+    what: "Someone leads the meeting. Responsible for reaching the goal and keeping the discussion on track.",
+    when: "Assigned no later than the beginning of the meeting."
+  },
+  {
+    n: "04", title: "Note Taker",
+    what: "Captures discussion, action points and next steps. Assigns owners to action steps. Shares notes after.",
+    when: "Assigned no later than the beginning of the meeting."
+  },
+  {
+    n: "05", title: "Parking Lot",
+    what: "A space for things that come up but are outside the meeting's scope. Captured, assigned an owner, followed up after.",
+    when: "During the meeting.",
+    who: "Note taker."
+  }];
+
+  return (
+    <div className="mf">
+      {steps.map((s, i) =>
+      <div className="mf-row" key={i}>
+          <span className="mf-step">Step {s.n}</span>
+          <div className="mf-content">
+            <h4 className="mf-title">{s.title}</h4>
+            <ul className="mf-list">
+              <li><span className="k">What</span><span className="v">{s.what}</span></li>
+              <li><span className="k">When</span><span className="v">{s.when}</span></li>
+              {s.who && <li><span className="k">Who</span><span className="v">{s.who}</span></li>}
+            </ul>
+          </div>
+        </div>
+      )}
+    </div>);
+
+}
+
+// ── ARTEFACT — Roadmap grid (per-milestone, weekly) ─────
+function RoadmapGrid() {
+  const WEEKS = 8;
+  const UX_CUTOFF = 4; // end of W04 — 2 weeks before UI cut-off
+  const UI_CUTOFF = 6; // end of W06 — 2 weeks before milestone deadline
+
+  const rows = [
+  {
+    role: "UX",
+    person: "UX designer 1",
+    tasks: [
+    { start: 1, span: 2, label: "Onboarding flow" },
+    { start: 3, span: 2, label: "Inventory · IA" },
+    { start: 5, span: 2, label: "HUD · combat UI" },
+    { start: 7, span: 2, label: "Settings · A11y" }]
+
+  },
+  {
+    role: "UX",
+    person: "UX designer 2",
+    tasks: [
+    { start: 1, span: 1, label: "Pause menu" },
+    { start: 2, span: 2, label: "World map nav" },
+    { start: 4, span: 1, label: "Quests" },
+    { start: 5, span: 2, label: "Dialogue system" },
+    { start: 7, span: 2, label: "Tutorial flow" }]
+
+  },
+  {
+    role: "UI",
+    person: "UI designer",
+    tasks: [
+    { start: 3, span: 2, label: "Pause menu UI" },
+    { start: 5, span: 2, label: "Onboarding + map UI" },
+    { start: 7, span: 2, label: "HUD · dialogue UI" }]
+
+  }];
+
+
+  return (
+    <div className="roadmap-v2" style={{ '--weeks': WEEKS }}>
+      <div className="rm-v2-header">
+        <span className="rm-v2-title">Milestone ·<br />Vertical slice</span>
+        <span className="rm-v2-deadline">Deadline · end W08</span>
+      </div>
+
+      <div className="rm-v2-scroll-outer">
+        <div className="rm-v2-grid">
+          {/* week labels */}
+          <div className="rm-v2-corner" />
+          {Array.from({ length: WEEKS }, (_, i) =>
+          <div key={i} className="rm-v2-week">W{String(i + 1).padStart(2, '0')}</div>
+          )}
+
+          {/* tracks */}
+          {rows.map((row, i) =>
+          <React.Fragment key={i}>
+              <div className="rm-v2-person">
+                <span className="role">{row.role}</span>
+                <span className="name">{row.person}</span>
+              </div>
+              <div className="rm-v2-track">
+                {row.tasks.map((t, j) =>
+              <span
+                key={j}
+                className={`rm-v2-bar ${t.accent ? 'is-accent' : ''}`}
+                style={{
+                  gridColumn: `${t.start} / span ${t.span}`
+                }}>
+                    {t.label}
+                  </span>
+              )}
+              </div>
+            </React.Fragment>
+          )}
+
+          {/* cut-off markers (absolute, overlay) */}
+          <div className="rm-v2-marker rm-v2-marker--ux" style={{ '--at': UX_CUTOFF }}>
+            <span className="rm-v2-marker-tag">UX cut-off · W{String(UX_CUTOFF).padStart(2, '0')}</span>
+          </div>
+          <div className="rm-v2-marker rm-v2-marker--ui" style={{ '--at': UI_CUTOFF }}>
+            <span className="rm-v2-marker-tag">UI cut-off · W{String(UI_CUTOFF).padStart(2, '0')}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="rm-v2-legend">
+        <span className="rm-v2-legend-item">
+          <span className="rm-v2-legend-swatch" /> Design task
+        </span>
+        <span className="rm-v2-legend-item">
+          <span className="rm-v2-legend-cutoff" /> Cut-off
+        </span>
+      </div>
+    </div>);
+
+}
+
+// ── Responsibilities list (What I did) ──────────────────
+const RESPONSIBILITIES = [
+"Helped establish the UX discipline for a new PC and console title during pre-production.",
+"Built the UX pipeline, documentation standards, and cross-team collaboration processes.",
+"Presented UX designs and rationale to external stakeholders, influencing key decisions on feature scope and player experience.",
+"Led the execution of core UX design — player flows, interactions, and feature structures from early concept through vertical slice.",
+"Partnered with game design, art, engineering, and production to align UX with gameplay, technical, and business goals.",
+"Ran cross-team alignment sessions and a few workshops, and introduced a meeting structure the team adopted.",
+"Identified key usability risks and guided the team toward scalable, player-focused solutions."];
+
+
+function Responsibilities() {
+  return (
+    <ol className="cs-resp">
+      {RESPONSIBILITIES.map((r, i) =>
+      <li key={i}>
+          <span className="num">{String(i + 1).padStart(2, '0')}</span>
+          <span className="t">{r}</span>
+        </li>
+      )}
+    </ol>);
+
+}
+
+// ── Body ────────────────────────────────────────────────
+function Body() {
+  return (
+    <div className="cs-shell cs-body">
+      <TOC />
+      <main className="cs-prose">
+
+        <Section id="context" num="00" title="Context">
+          <p className="lede">
+            <em>Grip Studios was starting a new PC and console title and
+            needed a UX designer. And soon after the whole UX department.</em>
+          </p>
+          <P>
+            For 11 months I led both the hands-on work and the building of the
+            practice around it. By the time I left, the discipline existed:
+            <em> UX pipeline, documentation standards, cross-team processes,
+            and roadmap planning for the UX department all in place.</em>
+          </P>
+        </Section>
+
+        <Section id="what-i-did" num="01" title="What I <em>did</em>">
+          <Responsibilities />
+          <PullQuote>
+            Everything had to be designed — including how the team would design.
+          </PullQuote>
+        </Section>
+
+        <Section id="pipeline" num="02" title="UX <em>pipeline</em>">
+          <P>
+            <strong>How work flowed from concept to tech.</strong> A defined loop
+            that made sure design didn't get isolated. Every feature passed
+            through approval, design, review, and final sign-off before reaching
+            engineering.
+          </P>
+          <Artefact figNum="01" label="Brief to build, across four disciplines.">
+            <div className="chart-desktop-direct"><PipelineDiagram /></div>
+            <div className="chart-mobile-viewer">
+              <ChartViewer label="UX Pipeline"><PipelineDiagram /></ChartViewer>
+            </div>
+          </Artefact>
+
+        </Section>
+
+        <Section id="documentation" num="03" title="Documentation <em>standard</em>">
+          <P>
+            <strong>What every feature doc had to contain.</strong> A consistent
+            structure so anyone on the team, current or future, could open a
+            feature doc and find what they needed without asking. Ownership,
+            status, links, prototypes, and rationale, all in the same place.
+          </P>
+          <Artefact figNum="02" label="Feature documentation template — abstracted from production.">
+            <DocTemplate />
+          </Artefact>
+        </Section>
+
+        <Section id="meetings" num="04" title="Meeting <em>framework</em>">
+          <P>
+            <strong>A meeting structure I built and use every time.</strong> Most
+            bad meetings are missing the same five things. I packaged them into
+            a simple structure I now apply to every meeting I run and shared
+            it with the team so they could too.
+          </P>
+          <Artefact figNum="03" label="Five steps. Five things that turn a meeting into a decision.">
+            <MeetingFundamentals />
+          </Artefact>
+        </Section>
+
+        <Section id="roadmap" num="05" title="UX department <em>roadmap</em>">
+          <P>
+            <strong>One roadmap per milestone.</strong> A weekly view of every
+            feature in flight across the team, most tasks spanning one or two
+            weeks. UX and UI planned together on a single timeline, with two
+            hard cut-offs that protected the milestone deadline.
+          </P>
+          <P>
+            <strong>UI cut-off</strong> sat two weeks before the milestone
+            deadline so engineering had time to implement.
+            <strong> UX cut-off</strong> sat two weeks before that, so UI had
+            time to catch up. The structure made dependencies visible and
+            stopped late design from quietly cascading into late code.
+          </P>
+          <Artefact figNum="04" label="One milestone, two cut-offs, three designers.">
+            <div className="chart-desktop-direct"><RoadmapGrid /></div>
+            <div className="chart-mobile-viewer">
+              <ChartViewer label="UX Roadmap"><RoadmapGrid /></ChartViewer>
+            </div>
+          </Artefact>
+        </Section>
+
+        <Section id="outcome" num="06" title="Outcome">
+          <p className="lede">A working UX discipline.
+
+
+          </p>
+          <PullQuote>
+            None of this was done in isolation. I led the discipline and shaped
+            most of the direction, but the pipeline, the documentation
+            standards, and the rituals only worked because the team ran them
+            with me: game design, UI, engineering, production, and the UX
+            designer alongside me.
+          </PullQuote>
+        </Section>
+
+      </main>
+    </div>);
+
+}
+
+// ── Closing ─────────────────────────────────────────────
+function Closing() {
+  return (
+    <footer className="cs-shell cs-closing">
+      <h2 className="h">
+        More work, or<br />
+        <em><a href="mailto:hello@klaudiajurackova.com">say hello</a></em>.
+      </h2>
+      <div className="links">
+        <a href="albums.html">
+          <span>← Albums case study</span>
+          <span>↗</span>
+        </a>
+        <a href="index.html#work">
+          <span>All case studies</span>
+          <span>↗</span>
+        </a>
+        <a href="index.html">
+          <span>Back to portfolio</span>
+          <span>↗</span>
+        </a>
+        <a href="mailto:hello@klaudiajurackova.com">
+          <span>Email Klaudia</span>
+          <span>↗</span>
+        </a>
+      </div>
+    </footer>);
+
+}
+
+// ── Reading progress ────────────────────────────────────
+function Progress() {
+  const barRef = useRef(null);
+  useEffect(() => {
+    const onScroll = () => {
+      const h = document.documentElement;
+      const pct = h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight) * 100;
+      if (barRef.current) barRef.current.style.width = `${pct}%`;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  return (
+    <div className="cs-progress">
+      <div className="bar" ref={barRef} />
+    </div>);
+
+}
+
+// ── Top-level nav ───────────────────────────────────────
+function TopNav() {
+  const [open, setOpen] = React.useState(false);
+  const close = () => setOpen(false);
+  React.useEffect(() => {
+    document.body.style.overflow = open ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [open]);
+  React.useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+  return (
+    <>
+      <nav className="nav">
+        <div className="shell nav-inner">
+          <a href="index.html" className="nav-mark" onClick={close}>
+            Klaudia Juráčková<sup>UX</sup>
+          </a>
+          <div className="nav-links">
+            <a href="index.html#work">Work</a>
+            <a href="index.html#about">About</a>
+            <a href="index.html#contact">Contact</a>
+          </div>
+          <button
+            className="nav-burger"
+            aria-label={open ? 'Close menu' : 'Open menu'}
+            aria-expanded={open}
+            onClick={() => setOpen(o => !o)}
+          >
+            <span className="nav-burger-bar" />
+            <span className="nav-burger-bar" />
+            <span className="nav-burger-bar" />
+          </button>
+        </div>
+      </nav>
+      <div className={`nav-overlay${open ? ' open' : ''}`} aria-hidden={!open}>
+        <nav className="nav-overlay-links">
+          <a href="index.html#work" onClick={close}>Work</a>
+          <a href="index.html#about" onClick={close}>About</a>
+          <a href="index.html#contact" onClick={close}>Contact</a>
+        </nav>
+      </div>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <>
+      <Progress />
+      <TopNav />
+      <SubNav />
+      <Hero />
+      <Meta />
+      <Body />
+      <Closing />
+    </>);
+
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
