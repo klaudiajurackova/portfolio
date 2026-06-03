@@ -409,14 +409,26 @@ section:has(#work) .section-head {
   .hero {
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
-    padding-top: clamp(72px, 20vh, 150px);
+    justify-content: center;
+    padding-top: 0;
     padding-bottom: 0;
     min-height: calc(100vh - 64px);
     min-height: calc(var(--inner-vh, 100svh) - 64px);
     position: relative;
   }
   .hero-marquee { display: none !important; }
+  .hero-statement-cta {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .hero-statement-cta .btn {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    box-sizing: border-box;
+  }
+  .hero-statement-cta .btn--ghost { order: 2; }
+  .hero-statement-cta .btn--primary { order: 1; }
 }
 
 .hero-scroll-cue { display: none; }
@@ -2993,6 +3005,15 @@ function App() {
     setVH();
     window.addEventListener('resize', setVH, { passive: true });
     return () => window.removeEventListener('resize', setVH);
+  }, []);
+
+  useEffect(() => {
+    const playAll = () => {
+      document.querySelectorAll('video').forEach(v => { v.muted = true; v.play().catch(() => {}); });
+    };
+    playAll();
+    document.addEventListener('touchstart', playAll, { once: true, passive: true });
+    document.addEventListener('scroll', playAll, { once: true, passive: true });
   }, []);
 
   useEffect(() => {
