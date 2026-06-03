@@ -505,7 +505,7 @@
     .chart-modal .pipeline-swim svg { width: 2500px; min-width: unset; height: auto; }
     /* Mobile preview: show ~1/6 from left, taller */
     .chart-preview-outer .pipeline-swim svg { width: 2340px; min-width: unset; height: auto; }
-    .chart-preview-outer { height: 380px; }
+    .chart-preview-outer { height: auto; }
     .ps-band { fill: var(--paper-soft); }
     .ps-h    { stroke: var(--rule); stroke-width: 1; }
     .ps-v    { stroke: var(--rule); stroke-width: 1; stroke-dasharray: 3 4; opacity: 0.65; }
@@ -1149,9 +1149,9 @@ function ChartViewer({ label, children }) {
   }, [open]);
 
   const openModal = () => {
-    setOpen(true);
     const el = document.documentElement;
     try { (el.requestFullscreen || el.webkitRequestFullscreen || (() => {})).call(el); } catch(e) {}
+    setOpen(true);
   };
   const closeModal = () => {
     setOpen(false);
