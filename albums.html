@@ -2673,8 +2673,6 @@ const ALBUMS_TOC = [
 
 function TOC({ items }) {
   const [active, setActive] = useState(items[0]?.id || '');
-  const [shown, setShown] = useState(false);
-  const [hidden, setHidden] = useState(false);
   useEffect(() => {
     const els = items.map(item => document.getElementById(item.id)).filter(Boolean);
     if (!els.length) return;
@@ -2688,25 +2686,10 @@ function TOC({ items }) {
     };
     window.addEventListener('scroll', update, { passive: true });
     update();
-    const showIo = new IntersectionObserver(
-      ([e]) => setShown(e.isIntersecting || e.boundingClientRect.top < 0),
-      { threshold: 0 }
-    );
-    showIo.observe(els[0]);
-    const footer = document.querySelector('.cs-closing');
-    const footerIo = footer ? new IntersectionObserver(
-      ([e]) => setHidden(e.isIntersecting), { threshold: 0 }
-    ) : null;
-    if (footerIo) footerIo.observe(footer);
-    return () => {
-      window.removeEventListener('scroll', update);
-      showIo.disconnect();
-      footerIo && footerIo.disconnect();
-    };
+    return () => window.removeEventListener('scroll', update);
   }, []);
-  const invisible = !shown || hidden;
   return (
-    <nav className="cs-toc" style={{ opacity: invisible ? 0 : 1, pointerEvents: invisible ? 'none' : 'auto', transition: 'opacity 0.3s ease' }}>
+    <nav className="cs-toc">
       <span className="cs-toc-label">On this page</span>
       {items.map(item => (
         <a
