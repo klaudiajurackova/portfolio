@@ -650,12 +650,12 @@
     .rm-v2-bar.is-accent::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--paper); flex-shrink: 0; }
     .rm-v2-marker {
       position: absolute;
-      top: 38px; bottom: 0;
+      top: 0; bottom: 0;
       width: 0;
       border-left: 1.5px dashed var(--ink);
       left: calc(140px + (var(--at) / var(--weeks)) * (100% - 140px));
       pointer-events: none;
-      z-index: 3;
+      z-index: 5;
     }
     .rm-v2-marker-tag {
       position: absolute;
@@ -873,6 +873,11 @@
     }
     .chart-modal .rm-v2-corner,
     .chart-modal .rm-v2-person { position: static !important; box-shadow: none !important; }
+    .chart-modal .rm-v2-scroll-outer {
+      overflow: visible;
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
   </style>
   <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
@@ -1143,6 +1148,20 @@ function ChartViewer({ label, children }) {
     };
   }, [open]);
 
+  const openModal = () => {
+    setOpen(true);
+    const el = document.documentElement;
+    try { (el.requestFullscreen || el.webkitRequestFullscreen || (() => {})).call(el); } catch(e) {}
+  };
+  const closeModal = () => {
+    setOpen(false);
+    try {
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        (document.exitFullscreen || document.webkitExitFullscreen || (() => {})).call(document);
+      }
+    } catch(e) {}
+  };
+
   return (
     <>
       <div className="chart-preview-outer" aria-hidden="true">
@@ -1150,7 +1169,7 @@ function ChartViewer({ label, children }) {
         <div className="chart-preview-fade" />
       </div>
       <div className="chart-view-btn-wrap">
-        <button className="chart-btn" onClick={() => setOpen(true)}>VIEW FULL CHART</button>
+        <button className="chart-btn" onClick={openModal}>VIEW FULL CHART</button>
       </div>
       {open && ReactDOM.createPortal(
         <div className="chart-modal" role="dialog" aria-modal="true" aria-label={label}>
@@ -1164,7 +1183,7 @@ function ChartViewer({ label, children }) {
               </button>
               <button className="chart-zoom-btn" onClick={() => setZoom(z => Math.min(4, +(z + 0.25).toFixed(2)))} aria-label="Zoom in">+</button>
             </div>
-            <button className="chart-modal-close" onClick={() => setOpen(false)} aria-label="Close">
+            <button className="chart-modal-close" onClick={closeModal} aria-label="Close">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                 <line x1="1" y1="1" x2="13" y2="13" /><line x1="13" y1="1" x2="1" y2="13" />
               </svg>
