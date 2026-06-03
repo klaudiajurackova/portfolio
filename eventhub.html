@@ -2797,7 +2797,7 @@ function TOC({ items }) {
     </nav>);
 }
 
-function AltRow({ id, eyebrow, title, mediaId, mediaPlaceholder, mediaId2, mediaPlaceholder2, phoneFrame, inlineImages, children }) {
+function AltRow({ id, eyebrow, title, mediaId, mediaPlaceholder, mediaId2, mediaPlaceholder2, mediaSrc, phoneFrame, inlineImages, children }) {
   const ref = useReveal();
   return (
     <section id={id} className="cs-shell cs-alt-row reveal" ref={ref}>
@@ -2811,7 +2811,10 @@ function AltRow({ id, eyebrow, title, mediaId, mediaPlaceholder, mediaId2, media
           <div className="iphone-frame">
             <div className="iphone-island" />
             <div className="iphone-screen">
-              <HeroImage storageKey={mediaId} label={mediaPlaceholder} />
+              {mediaSrc
+                ? <img src={mediaSrc} alt="" style={{width:'100%', height:'100%', objectFit:'cover', display:'block'}} />
+                : <HeroImage storageKey={mediaId} label={mediaPlaceholder} />
+              }
             </div>
           </div>
         </div>
@@ -2847,7 +2850,7 @@ function Closing() {
     <footer className="cs-shell cs-closing">
       <h2 className="h">
         More work, or<br />
-        <em><a href="mailto:jurackova.klaudia@gmail.com">say hello</a></em>.
+        <em><a href="mailto:hello@klaudiajurackova.com">say hello</a></em>.
       </h2>
       <div className="links">
         <a href="grip.html">
@@ -2862,7 +2865,7 @@ function Closing() {
           <span>Back to portfolio</span>
           <span>↗</span>
         </a>
-        <a href="mailto:jurackova.klaudia@gmail.com">
+        <a href="mailto:hello@klaudiajurackova.com">
           <span>Email Klaudia</span>
           <span>↗</span>
         </a>
@@ -2887,6 +2890,7 @@ function App() {
         title="Diggy's <em>Adventure</em>"
         mediaId="eventhub-context"
         mediaPlaceholder="DA — drop screenshot"
+        mediaSrc="DA.png"
         phoneFrame>
         <p>
           Diggy's Adventure is a mobile F2P puzzle game by Pixelfederation. Events are a central part of how the game keeps players engaged. They run on a regular cycle and give players fresh goals outside the main story.
