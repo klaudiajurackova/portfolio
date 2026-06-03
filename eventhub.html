@@ -1519,12 +1519,13 @@ image-slot {
 
 .cs-shell {
   width: 100%;
-  max-width: 1200px;
+  max-width: 880px;
   margin: 0 auto;
   padding: 0 32px;
 }
-.cs-hero-v2.cs-shell {
-  max-width: 880px;
+.nav .cs-shell,
+.cs-closing.cs-shell {
+  max-width: 1200px;
 }
 @media (max-width: 900px) {
   .cs-shell { padding: 0 24px; }
@@ -2028,31 +2029,22 @@ image-slot {
   .cs-closing { grid-template-columns: 1fr; gap: 32px; }
 }
 
-/* ── Body grid (TOC + content) ───────────────────────── */
-.cs-body {
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: clamp(40px, 6vw, 96px);
-  padding-top: clamp(64px, 9vw, 120px);
-  padding-bottom: clamp(64px, 9vw, 120px);
-  align-items: start;
-}
-@media (max-width: 1000px) { .cs-body { grid-template-columns: 1fr; gap: 32px; } }
-
 /* ── TOC sidebar ─────────────────────────────────────── */
 .cs-toc {
-  position: sticky;
+  position: fixed;
   top: 92px;
-  display: flex;
+  left: max(16px, calc(50vw - 440px - 164px));
+  display: none;
   flex-direction: column;
   gap: 4px;
   font-family: var(--mono);
   font-size: 11.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  z-index: 40;
 }
-@media (max-width: 1000px) {
-  .cs-toc { display: none; }
+@media (min-width: 1000px) {
+  .cs-toc { display: flex; }
 }
 .cs-toc-label {
   font-size: 10px;
@@ -2650,17 +2642,71 @@ function Hero() {
 
 }
 
-function HeroImage({ src }) {
-  return <div className="hero-img-slot"><img src={src} alt="" /></div>;
+const _idb = new Promise((res, rej) => {
+  const r = indexedDB.open('portfolio-imgs', 1);
+  r.onupgradeneeded = e => e.target.result.createObjectStore('imgs');
+  r.onsuccess = e => res(e.target.result);
+  r.onerror = () => rej();
+});
+async function idbGet(key) {
+  try { const db = await _idb; return await new Promise(r => { const q = db.transaction('imgs').objectStore('imgs').get(key); q.onsuccess = () => r(q.result||null); q.onerror = () => r(null); }); } catch { return null; }
+}
+async function idbSet(key, val) {
+  try { const db = await _idb; await new Promise((res,rej) => { const tx = db.transaction('imgs','readwrite'); tx.objectStore('imgs').put(val,key); tx.oncomplete=res; tx.onerror=rej; }); } catch { try { localStorage.setItem(key,val); } catch {} }
+}
+
+function HeroImage({ storageKey, label }) {
+  const [src, setSrc] = useState(null);
+  const [over, setOver] = useState(false);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    idbGet(storageKey).then(val => {
+      if (val) { setSrc(val); return; }
+      try { const v = localStorage.getItem(storageKey); if (v) setSrc(v); } catch {}
+    });
+  }, [storageKey]);
+
+  const ingest = async (file) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const dataUrl = e.target.result;
+      setSrc(dataUrl);
+      await idbSet(storageKey, dataUrl);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div
+      className={`hero-img-slot${over ? ' hero-img-slot--over' : ''}`}
+      onDragOver={e => { e.preventDefault(); setOver(true); }}
+      onDragLeave={() => setOver(false)}
+      onDrop={e => { e.preventDefault(); setOver(false); ingest(e.dataTransfer?.files?.[0]); }}
+      onClick={() => !src && inputRef.current?.click()}
+    >
+      {src
+        ? <img src={src} alt="" />
+        : <div className="hero-img-empty">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>
+            </svg>
+            <span>{label}</span>
+          </div>
+      }
+      <input ref={inputRef} type="file" accept="image/*" hidden onChange={e => ingest(e.target.files?.[0])} />
+    </div>
+  );
 }
 
 function HeroFigure() {
   return (
     <div className="cs-shell cs-hero-fig">
       <div className="cs-hero-fig-images">
-        <HeroImage src="event-hub.png" />
-        <HeroImage src="memories.png" />
-        <HeroImage src="info-tab.png" />
+        <HeroImage storageKey="eventhub-hero-1" label="Event Hub" />
+        <HeroImage storageKey="eventhub-hero-2" label="Memories" />
+        <HeroImage storageKey="eventhub-hero-3" label="Info Tab" />
       </div>
     </div>);
 }
@@ -2703,6 +2749,8 @@ const EVENTHUB_TOC = [
 
 function TOC({ items }) {
   const [active, setActive] = useState(items[0]?.id || '');
+  const [shown, setShown] = useState(false);
+  const [hidden, setHidden] = useState(false);
   useEffect(() => {
     const els = items.map(item => document.getElementById(item.id)).filter(Boolean);
     if (!els.length) return;
@@ -2711,10 +2759,25 @@ function TOC({ items }) {
       { threshold: 0, rootMargin: '-10% 0px -55% 0px' }
     );
     els.forEach(el => io.observe(el));
-    return () => io.disconnect();
+    const showIo = new IntersectionObserver(
+      ([e]) => setShown(e.isIntersecting || e.boundingClientRect.top < 0),
+      { threshold: 0 }
+    );
+    showIo.observe(els[0]);
+    const footer = document.querySelector('.cs-closing');
+    const footerIo = footer ? new IntersectionObserver(
+      ([e]) => setHidden(e.isIntersecting), { threshold: 0 }
+    ) : null;
+    if (footerIo) footerIo.observe(footer);
+    return () => {
+      io.disconnect();
+      showIo.disconnect();
+      footerIo && footerIo.disconnect();
+    };
   }, []);
+  const invisible = !shown || hidden;
   return (
-    <nav className="cs-toc">
+    <nav className="cs-toc" style={{ opacity: invisible ? 0 : 1, pointerEvents: invisible ? 'none' : 'auto', transition: 'opacity 0.3s ease' }}>
       <span className="cs-toc-label">On this page</span>
       {items.map(item => (
         <a
@@ -2734,36 +2797,33 @@ function TOC({ items }) {
     </nav>);
 }
 
-function AltRow({ id, eyebrow, title, mediaSrc, mediaSrc2, videoSrc, phoneFrame, inlineImages, children }) {
+function AltRow({ id, eyebrow, title, mediaId, mediaPlaceholder, mediaId2, mediaPlaceholder2, phoneFrame, inlineImages, children }) {
   const ref = useReveal();
   return (
-    <section id={id} className="cs-alt-row reveal" ref={ref}>
+    <section id={id} className="cs-shell cs-alt-row reveal" ref={ref}>
       <div className="cs-alt-text">
         <span className="cs-alt-eyebrow">{eyebrow}</span>
         <h2 className="cs-alt-title" dangerouslySetInnerHTML={{ __html: title }} />
         <div className={`cs-alt-body${inlineImages ? ' cs-alt-body--wide' : ''}`}>{children}</div>
       </div>
-      {(phoneFrame || mediaSrc) && (phoneFrame ? (
+      {(phoneFrame || mediaId) && (phoneFrame ? (
         <div className="iphone-wrap">
           <div className="iphone-frame">
             <div className="iphone-island" />
             <div className="iphone-screen">
-              {videoSrc
-                ? <video src={videoSrc} autoPlay muted loop playsInline />
-                : <HeroImage src={mediaSrc} />
-              }
+              <HeroImage storageKey={mediaId} label={mediaPlaceholder} />
             </div>
           </div>
         </div>
       ) : (
         <div className="cs-alt-media">
-          {mediaSrc2 ? (
+          {mediaId2 ? (
             <div className="cs-alt-media-pair">
-              <HeroImage src={mediaSrc} />
-              <HeroImage src={mediaSrc2} />
+              <HeroImage storageKey={mediaId} label={mediaPlaceholder} />
+              <HeroImage storageKey={mediaId2} label={mediaPlaceholder2} />
             </div>
           ) : (
-            mediaSrc && <img src={mediaSrc} alt="" style={{width:'100%', height:'auto', display:'block', borderRadius:'4px'}} />
+            <image-slot id={mediaId} shape="rect" placeholder={mediaPlaceholder}></image-slot>
           )}
         </div>
       ))}
@@ -2773,7 +2833,7 @@ function AltRow({ id, eyebrow, title, mediaSrc, mediaSrc2, videoSrc, phoneFrame,
 function Outcome() {
   const ref = useReveal();
   return (
-    <section id="section-outcome" className="cs-outcome-v2 reveal" ref={ref}>
+    <section id="section-outcome" className="cs-shell cs-outcome-v2 reveal" ref={ref}>
       <span className="cs-outcome-eyebrow">Outcome</span>
       <p className="cs-outcome-p">
         Two entry points became one. Players no longer had to know where to look. The Hub was simply where events lived. Consolidating discovery, purchase and history into a single coherent space removed the friction that was quietly costing engagement every time a player couldn't find what they were looking for.
@@ -2787,7 +2847,7 @@ function Closing() {
     <footer className="cs-shell cs-closing">
       <h2 className="h">
         More work, or<br />
-        <em><a href="mailto:hello@klaudiajurackova.com">say hello</a></em>.
+        <em><a href="mailto:jurackova.klaudia@gmail.com">say hello</a></em>.
       </h2>
       <div className="links">
         <a href="grip.html">
@@ -2802,7 +2862,7 @@ function Closing() {
           <span>Back to portfolio</span>
           <span>↗</span>
         </a>
-        <a href="mailto:hello@klaudiajurackova.com">
+        <a href="mailto:jurackova.klaudia@gmail.com">
           <span>Email Klaudia</span>
           <span>↗</span>
         </a>
@@ -2816,93 +2876,93 @@ function App() {
     <>
       <Progress />
       <TopNav />
+      <TOC items={EVENTHUB_TOC} />
       <Hero />
       <HeroFigure />
       <Details />
-      <div className="cs-shell cs-body">
-        <TOC items={EVENTHUB_TOC} />
-        <main>
 
-          <AltRow
-            id="section-context"
-            eyebrow="Context"
-            title="Diggy's <em>Adventure</em>"
-            mediaSrc="DA.png">
-            <p>
-              Diggy's Adventure is a mobile F2P puzzle game by Pixelfederation. Events are a central part of how the game keeps players engaged. They run on a regular cycle and give players fresh goals outside the main story.
-            </p>
-          </AltRow>
+      <AltRow
+        id="section-context"
+        eyebrow="Context"
+        title="Diggy's <em>Adventure</em>"
+        mediaId="eventhub-context"
+        mediaPlaceholder="DA — drop screenshot"
+        phoneFrame>
+        <p>
+          Diggy's Adventure is a mobile F2P puzzle game by Pixelfederation. Events are a central part of how the game keeps players engaged. They run on a regular cycle and give players fresh goals outside the main story.
+        </p>
+      </AltRow>
 
-          <AltRow
-            id="section-problem"
-            eyebrow="The problem"
-            title="Two places to manage events. <em>No memory</em> of playing them."
-            mediaSrc="event-dropdown.png"
-            mediaSrc2="shop-event.png">
-            <p>
-              <strong>Events were scattered across two separate entry points:</strong> a dropdown on the HUD that showed only active events, and an Events tab buried in the Shop for events you could purchase. There was no single place to manage both.
-            </p>
-            <p>
-              Players had to maintain two separate mental models to manage something that is conceptually one thing: events. Every additional entry point increases cognitive load and the chance of players missing content they would have engaged with.
-            </p>
-            <p>
-              And <strong>for players who had been in the game for years, there was no way to look back at what they had played.</strong>
-            </p>
-          </AltRow>
+      <AltRow
+        id="section-problem"
+        eyebrow="The problem"
+        title="Two places to manage events. <em>No memory</em> of playing them."
+        mediaId="eventhub-problem"
+        mediaPlaceholder="Event dropdown"
+        mediaId2="eventhub-problem-2"
+        mediaPlaceholder2="Shop event">
+        <p>
+          <strong>Events were scattered across two separate entry points:</strong> a dropdown on the HUD that showed only active events, and an Events tab buried in the Shop for events you could purchase. There was no single place to manage both.
+        </p>
+        <p>
+          Players had to maintain two separate mental models to manage something that is conceptually one thing: events. Every additional entry point increases cognitive load and the chance of players missing content they would have engaged with.
+        </p>
+        <p>
+          And <strong>for players who had been in the game for years, there was no way to look back at what they had played.</strong>
+        </p>
+      </AltRow>
 
-          <AltRow
-            id="section-process"
-            eyebrow="My process"
-            title="Familiar, <em>ordered</em>, simple."
-            inlineImages>
-            <p>
-              <strong>Staying familiar.</strong> I started with paper sketches, exploring layout patterns already used elsewhere in Diggy's Adventure. The goal from the beginning was to keep things familiar for players and to <strong>reuse components from the existing design system</strong>, both to stay consistent and to make life easier for the engineering team.
-            </p>
-            <div className="cs-step-img"><HeroImage src="paper-sketches.png" /></div>
-            <p>
-              <strong>Fixing the scroll problem.</strong> An early version had two horizontal scrolling sections within the same tab. I flagged it as a UX problem and scrapped it. Having two horizontal scrolls in one view asks too much of the player at once. The solution was simpler: one horizontal scroll with Active and Buy More sitting in the same row, separated by a clear visual divider.
-            </p>
-            <div className="cs-step-img"><HeroImage src="lo-fi.png" /></div>
-            <p>
-              <strong>Getting the order right.</strong> Active events come first because that is what players are already engaged with. Putting purchasable events before them would increase cognitive load and create unnecessary friction between the player and what they actually came to do. Buy More sits right after, visible but not in the way.
-            </p>
-            <div className="cs-step-img"><HeroImage src="paper-sketches-2.png" /></div>
-          </AltRow>
+      <AltRow
+        id="section-process"
+        eyebrow="My process"
+        title="Familiar, <em>ordered</em>, simple."
+        inlineImages>
+        <p>
+          <strong>Staying familiar.</strong> I started with paper sketches, exploring layout patterns already used elsewhere in Diggy's Adventure. The goal from the beginning was to keep things familiar for players and to <strong>reuse components from the existing design system</strong>, both to stay consistent and to make life easier for the engineering team.
+        </p>
+        <div className="cs-step-img"><HeroImage storageKey="eventhub-process-1" label="Drop image" /></div>
+        <p>
+          <strong>Fixing the scroll problem.</strong> An early version had two horizontal scrolling sections within the same tab. I flagged it as a UX problem and scrapped it. Having two horizontal scrolls in one view asks too much of the player at once. The solution was simpler: one horizontal scroll with Active and Buy More sitting in the same row, separated by a clear visual divider.
+        </p>
+        <div className="cs-step-img"><HeroImage storageKey="eventhub-process-2" label="Drop image" /></div>
+        <p>
+          <strong>Getting the order right.</strong> Active events come first because that is what players are already engaged with. Putting purchasable events before them would increase cognitive load and create unnecessary friction between the player and what they actually came to do. Buy More sits right after, visible but not in the way.
+        </p>
+        <div className="cs-step-img"><HeroImage storageKey="eventhub-process-3" label="Drop image" /></div>
+      </AltRow>
 
-          <AltRow
-            id="section-screens"
-            eyebrow="My process"
-            title="Fixing the <em>details</em>."
-            inlineImages>
-            <p>
-              <strong>Restructuring the Info tab.</strong> The Info tab was cramming everything into one panel with no clear hierarchy. I restructured it by borrowing the speech bubble pattern players already knew from the Quests tab. The achievement badges moved to the top as the most important information, with everything else organised into a cleaner grid beneath.
-            </p>
-            <div className="cs-step-img"><HeroImage src="info-tab-before-after.png" /></div>
-            <p>
-              <strong>Fixing the details.</strong> The <strong>dropdown Events button on the HUD</strong> in the Camp was designed to show a list of active events. I replaced it with a single button that opens the Hub directly. I kept it in the same location because players were already used to going there for events.
-            </p>
-            <div className="cs-step-img"><HeroImage src="HUD-events-button.png" /></div>
-            <p>
-              The <strong>Shop Events tab</strong> had an Info button where a Buy button should be.
-            </p>
-            <div className="cs-step-img"><HeroImage src="shop-event-before-after.png" /></div>
-            <p>
-              The <strong>event cards</strong> needed consistent <strong>states</strong> across active, new, sale phase and reward-ready.
-            </p>
-            <div className="cs-step-img"><HeroImage src="event-cards.png" /></div>
-            <p>
-              The <strong>event timer</strong> appeared in a different position on every tab. I unified it: the event name and timer now sit at the top consistently across all tabs.
-            </p>
-            <div className="cs-step-img"><HeroImage src="timer.png" /></div>
-            <p>
-              <strong>Designing Memories from scratch.</strong> <strong>There was no history of events anywhere in the game, despite players having been around for years.</strong> I made a deliberate decision to include any event a player has touched, not just completed ones, because players earn achievements and progress through events they never finish, and that should count. Finished date is the default sort because it mirrors how people naturally recall experiences: most recent first.
-            </p>
-            <div className="cs-step-img"><HeroImage src="memories.png" /></div>
-          </AltRow>
+      <AltRow
+        id="section-screens"
+        eyebrow="My process"
+        title="Fixing the <em>details</em>."
+        inlineImages>
+        <p>
+          <strong>Restructuring the Info tab.</strong> The Info tab was cramming everything into one panel with no clear hierarchy. I restructured it by borrowing the speech bubble pattern players already knew from the Quests tab. The achievement badges moved to the top as the most important information, with everything else organised into a cleaner grid beneath.
+        </p>
+        <div className="cs-step-img"><HeroImage storageKey="eventhub-screens-2" label="Drop image" /></div>
+        <p>
+          <strong>Fixing the details.</strong> The <strong>dropdown Events button on the HUD</strong> in the Camp was designed to show a list of active events. I replaced it with a single button that opens the Hub directly. I kept it in the same location because players were already used to going there for events.
+        </p>
+        <div className="cs-step-img"><HeroImage storageKey="eventhub-screens-fd-1" label="Drop image" /></div>
+        <p>
+          The <strong>Shop Events tab</strong> had an Info button where a Buy button should be.
+        </p>
+        <div className="cs-step-img"><HeroImage storageKey="eventhub-screens-fd-2" label="Drop image" /></div>
+        <p>
+          The <strong>event cards</strong> needed consistent <strong>states</strong> across active, new, sale phase and reward-ready.
+        </p>
+        <div className="cs-step-img"><HeroImage storageKey="eventhub-screens-fd-3" label="Drop image" /></div>
+        <p>
+          The <strong>event timer</strong> appeared in a different position on every tab. I unified it: the event name and timer now sit at the top consistently across all tabs.
+        </p>
+        <div className="cs-step-img"><HeroImage storageKey="eventhub-screens-fd-4" label="Drop image" /></div>
+        <p>
+          <strong>Designing Memories from scratch.</strong> <strong>There was no history of events anywhere in the game, despite players having been around for years.</strong> I made a deliberate decision to include any event a player has touched, not just completed ones, because players earn achievements and progress through events they never finish, and that should count. Finished date is the default sort because it mirrors how people naturally recall experiences: most recent first.
+        </p>
+        <div className="cs-step-img"><HeroImage storageKey="eventhub-screens-4" label="Drop image" /></div>
+      </AltRow>
 
-          <Outcome />
-        </main>
-      </div>
+      <Outcome />
       <Closing />
     </>);
 
