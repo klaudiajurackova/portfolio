@@ -406,7 +406,37 @@ section:has(#work) .section-head {
 
 @media (max-width: 700px) {
   .hero-meta { display: none; }
-  .hero { padding-top: clamp(48px, 10vw, 72px); }
+  .hero {
+    padding-top: clamp(48px, 10vw, 72px);
+    min-height: calc(100dvh - 64px);
+    position: relative;
+    padding-bottom: 64px;
+  }
+  .hero-marquee { display: none; }
+}
+
+.hero-scroll-cue { display: none; }
+@keyframes scrollCueBob {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%       { transform: translateX(-50%) translateY(6px); }
+}
+@media (max-width: 700px) {
+  .hero-scroll-cue {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--ink-mute);
+    animation: scrollCueBob 2s ease-in-out infinite;
+    transition: opacity 0.35s ease;
+  }
+  .hero-scroll-cue.is-gone {
+    opacity: 0;
+    pointer-events: none;
+  }
 }
 .btn {
   display: inline-flex;
@@ -2221,9 +2251,26 @@ function Nav() {
   );
 }
 
+function HeroScrollCue() {
+  const [gone, setGone] = useState(false);
+  useEffect(() => {
+    const onScroll = () => { if (window.scrollY > 40) setGone(true); };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  return (
+    <div className={`hero-scroll-cue${gone ? ' is-gone' : ''}`} aria-hidden="true">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path d="M5 10 L12 17 L19 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </div>
+  );
+}
+
 function Hero({ variant }) {
   return (
     <header id="top" className="hero">
+      <HeroScrollCue />
       <div className="shell">
         <div className="hero-meta">
           <div>
@@ -2415,7 +2462,7 @@ const PROJECTS = [
     stat: null,
     pill: null,
     slot: "work-eventhub",
-    video: "eventhub-video.mov"
+    video: "eventhub-video.MOV"
   }
 ];
 
@@ -2533,7 +2580,7 @@ function ProjectCard({ p, i }) {
             <div className="iphone-frame">
               <div className="iphone-island" />
               <div className="iphone-screen">
-                <video src={p.video} autoPlay loop muted playsInline />
+                <video ref={el => { if (el) { el.muted = true; el.play().catch(() => {}); } }} src={p.video} autoPlay loop muted playsInline />
               </div>
             </div>
           </div>
