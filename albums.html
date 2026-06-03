@@ -1525,12 +1525,13 @@ image-slot {
 
 .cs-shell {
   width: 100%;
-  max-width: 1200px;
+  max-width: 880px;
   margin: 0 auto;
   padding: 0 32px;
 }
-.cs-hero-v2.cs-shell {
-  max-width: 880px;
+.nav .cs-shell,
+.cs-closing.cs-shell {
+  max-width: 1200px;
 }
 @media (max-width: 900px) {
   .cs-shell { padding: 0 24px; }
@@ -1990,30 +1991,21 @@ image-slot {
 }
 
 /* ── TOC sidebar ─────────────────────────────────────── */
-/* ── Body grid (TOC + content) ───────────────────────── */
-.cs-body {
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: clamp(40px, 6vw, 96px);
-  padding-top: clamp(64px, 9vw, 120px);
-  padding-bottom: clamp(64px, 9vw, 120px);
-  align-items: start;
-}
-@media (max-width: 1000px) { .cs-body { grid-template-columns: 1fr; gap: 32px; } }
-
 .cs-toc {
-  position: sticky;
+  position: fixed;
   top: 92px;
-  display: flex;
+  left: max(16px, calc(50vw - 440px - 164px));
+  display: none;
   flex-direction: column;
   gap: 4px;
   font-family: var(--mono);
   font-size: 11.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  z-index: 40;
 }
-@media (max-width: 1000px) {
-  .cs-toc { display: none; }
+@media (min-width: 1000px) {
+  .cs-toc { display: flex; }
 }
 .cs-toc-label {
   font-size: 10px;
@@ -2673,6 +2665,8 @@ const ALBUMS_TOC = [
 
 function TOC({ items }) {
   const [active, setActive] = useState(items[0]?.id || '');
+  const [shown, setShown] = useState(false);
+  const [hidden, setHidden] = useState(false);
   useEffect(() => {
     const els = items.map(item => document.getElementById(item.id)).filter(Boolean);
     if (!els.length) return;
@@ -2686,10 +2680,25 @@ function TOC({ items }) {
     };
     window.addEventListener('scroll', update, { passive: true });
     update();
-    return () => window.removeEventListener('scroll', update);
+    const showIo = new IntersectionObserver(
+      ([e]) => setShown(e.isIntersecting || e.boundingClientRect.top < 0),
+      { threshold: 0 }
+    );
+    showIo.observe(els[0]);
+    const footer = document.querySelector('.cs-closing');
+    const footerIo = footer ? new IntersectionObserver(
+      ([e]) => setHidden(e.isIntersecting), { threshold: 0 }
+    ) : null;
+    if (footerIo) footerIo.observe(footer);
+    return () => {
+      window.removeEventListener('scroll', update);
+      showIo.disconnect();
+      footerIo && footerIo.disconnect();
+    };
   }, []);
+  const invisible = !shown || hidden;
   return (
-    <nav className="cs-toc">
+    <nav className="cs-toc" style={{ opacity: invisible ? 0 : 1, pointerEvents: invisible ? 'none' : 'auto', transition: 'opacity 0.3s ease' }}>
       <span className="cs-toc-label">On this page</span>
       {items.map(item => (
         <a
@@ -2739,8 +2748,63 @@ function Hero() {
     </header>);
 }
 
-function HeroImage({ src }) {
-  return <div className="hero-img-slot"><img src={src} alt="" /></div>;
+// ── Natural-ratio drag-drop image slot ───────────────────
+const _idb = new Promise((res, rej) => {
+  const r = indexedDB.open('portfolio-imgs', 1);
+  r.onupgradeneeded = e => e.target.result.createObjectStore('imgs');
+  r.onsuccess = e => res(e.target.result);
+  r.onerror = () => rej();
+});
+async function idbGet(key) {
+  try { const db = await _idb; return await new Promise(r => { const q = db.transaction('imgs').objectStore('imgs').get(key); q.onsuccess = () => r(q.result||null); q.onerror = () => r(null); }); } catch { return null; }
+}
+async function idbSet(key, val) {
+  try { const db = await _idb; await new Promise((res,rej) => { const tx = db.transaction('imgs','readwrite'); tx.objectStore('imgs').put(val,key); tx.oncomplete=res; tx.onerror=rej; }); } catch { try { localStorage.setItem(key,val); } catch {} }
+}
+
+function HeroImage({ storageKey, label }) {
+  const [src, setSrc] = useState(null);
+  const [over, setOver] = useState(false);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    idbGet(storageKey).then(val => {
+      if (val) { setSrc(val); return; }
+      try { const v = localStorage.getItem(storageKey); if (v) setSrc(v); } catch {}
+    });
+  }, [storageKey]);
+
+  const ingest = async (file) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const dataUrl = e.target.result;
+      setSrc(dataUrl);
+      await idbSet(storageKey, dataUrl);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div
+      className={`hero-img-slot${over ? ' hero-img-slot--over' : ''}`}
+      onDragOver={e => { e.preventDefault(); setOver(true); }}
+      onDragLeave={() => setOver(false)}
+      onDrop={e => { e.preventDefault(); setOver(false); ingest(e.dataTransfer?.files?.[0]); }}
+      onClick={() => !src && inputRef.current?.click()}
+    >
+      {src
+        ? <img src={src} alt="" />
+        : <div className="hero-img-empty">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>
+            </svg>
+            <span>{label}</span>
+          </div>
+      }
+      <input ref={inputRef} type="file" accept="image/*" hidden onChange={e => ingest(e.target.files?.[0])} />
+    </div>
+  );
 }
 
 // ── Hero figure (3 screenshots) ─────────────────────────
@@ -2748,9 +2812,9 @@ function HeroFigure() {
   return (
     <div className="cs-shell cs-hero-fig">
       <div className="cs-hero-fig-images">
-        <HeroImage src="albums.png" />
-        <HeroImage src="pages.png" />
-        <HeroImage src="active-joker.png" />
+        <HeroImage storageKey="albums-hero-1" label="Drop image 1" />
+        <HeroImage storageKey="albums-hero-2" label="Drop image 2" />
+        <HeroImage storageKey="albums-hero-3" label="Drop image 3" />
       </div>
     </div>);
 }
@@ -2789,35 +2853,38 @@ function Details() {
 }
 
 // ── Alternating row ─────────────────────────────────────
-function AltRow({ id, flip, eyebrow, title, mediaSrc, videoSrc, caption, phoneFrame, children }) {
+function AltRow({ id, flip, eyebrow, title, mediaId, mediaPlaceholder, mediaSrc, caption, phoneFrame, children }) {
   const ref = useReveal();
+  const hasMedia = phoneFrame || mediaSrc || mediaId;
   return (
-    <section id={id} className={`cs-alt-row ${flip ? 'flip' : ''} reveal`} ref={ref}>
+    <section id={id} className={`cs-shell cs-alt-row ${flip ? 'flip' : ''} reveal`} ref={ref}>
       <div className="cs-alt-text">
         <span className="cs-alt-eyebrow">{eyebrow}</span>
         <h2 className="cs-alt-title" dangerouslySetInnerHTML={{ __html: title }} />
         <div className="cs-alt-body">{children}</div>
       </div>
-      <div>
-        {(phoneFrame || mediaSrc) && (phoneFrame ? (
-          <div className="iphone-wrap">
-            <div className="iphone-frame">
-              <div className="iphone-island" />
-              <div className="iphone-screen">
-                {videoSrc
-                  ? <video src={videoSrc} autoPlay muted loop playsInline />
-                  : <HeroImage src={mediaSrc} />
-                }
+      {hasMedia && (
+        <div>
+          {phoneFrame ? (
+            <div className="iphone-wrap">
+              <div className="iphone-frame">
+                <div className="iphone-island" />
+                <div className="iphone-screen">
+                  <HeroImage storageKey={mediaId} label={mediaPlaceholder || 'Drop image'} />
+                </div>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="cs-alt-media">
-            {mediaSrc && <img src={mediaSrc} alt="" style={{width:'100%', height:'auto', display:'block', borderRadius:'4px'}} />}
-          </div>
-        ))}
-        {caption && <p className="cs-alt-caption">{caption}</p>}
-      </div>
+          ) : (
+            <div className="cs-alt-media">
+              {mediaSrc
+                ? <img src={mediaSrc} alt="" style={{width:'100%', height:'auto', display:'block', borderRadius:'4px'}} />
+                : <HeroImage storageKey={mediaId} label="Drop image" />
+              }
+            </div>
+          )}
+          {caption && <p className="cs-alt-caption">{caption}</p>}
+        </div>
+      )}
     </section>);
 
 }
@@ -2826,7 +2893,7 @@ function AltRow({ id, flip, eyebrow, title, mediaSrc, videoSrc, caption, phoneFr
 function Outcome() {
   const ref = useReveal();
   return (
-    <section id="section-outcome" className="cs-outcome-v2 reveal" ref={ref}>
+    <section id="section-outcome" className="cs-shell cs-outcome-v2 reveal" ref={ref}>
       <span className="cs-outcome-eyebrow">Outcome</span>
       <div className="cs-outcome-grid">
         <div className="cs-outcome-stat">
@@ -2882,105 +2949,100 @@ function App() {
     <>
       <Progress />
       <TopNav />
+      <TOC items={ALBUMS_TOC} />
       <Hero />
       <HeroFigure />
       <Details />
-      <div className="cs-shell cs-body">
-        <TOC items={ALBUMS_TOC} />
-        <main>
 
-          <AltRow
-            id="section-context"
-            eyebrow="Context"
-            title="A game with events at its core."
-            videoSrc="albums-video.mov"
-            phoneFrame
-            caption="Diggy's Adventure — the event loop">
-            <p>
-              Diggy's Adventure is a mobile F2P puzzle game by Pixelfederation. Events are a central part of how the game keeps players engaged. They run on a regular cycle and give players fresh goals outside the main story.
-            </p>
-          </AltRow>
+      <AltRow
+        id="section-context"
+        eyebrow="Context"
+        title="A game with events at its core."
+        mediaSrc="DA.png"
+        caption="Diggy's Adventure — the event loop">
+        <p>
+          Diggy's Adventure is a mobile F2P puzzle game by Pixelfederation. Events are a central part of how the game keeps players engaged. They run on a regular cycle and give players fresh goals outside the main story.
+        </p>
+      </AltRow>
 
-          <AltRow
-            id="section-problem"
-            flip
-            eyebrow="The problem"
-            title="A familiar event that stopped feeling exciting."
-            mediaSrc="tower.png"
-            caption="The Tower event">
-            <p style={{ fontWeight: "400" }}>
-              The Tower is a 3-day competitive event where players solve puzzles to climb a leaderboard. It repeats throughout the year, and <strong>because the content is procedurally generated, it can run at scale without significant development cost.</strong>
-            </p>
-            <p>After running repeatedly, engagement had dropped. The leaderboard competition wasn't pulling players in like it used to.
-            </p>
-          </AltRow>
+      <AltRow
+        id="section-problem"
+        flip
+        eyebrow="The problem"
+        title="A familiar event that stopped feeling exciting."
+        mediaId="albums-context-tower"
+        mediaPlaceholder="The Tower event — before Albums"
+        caption="The Tower event">
+        <p style={{ fontWeight: "400" }}>
+          The Tower is a 3-day competitive event where players solve puzzles to climb a leaderboard. It repeats throughout the year, and <strong>because the content is procedurally generated, it can run at scale without significant development cost.</strong>
+        </p>
+        <p>After running repeatedly, engagement had dropped. The leaderboard competition wasn't pulling players in like it used to.
+        </p>
+      </AltRow>
 
-          <AltRow
-            id="section-role"
-            eyebrow="My role"
-            title="Design the mechanic's home and everything inside it."
-            mediaSrc="museum.png">
-            <p>
-              The game designer came up with the Albums mechanic. Players find photos hidden across all the events (including the Tower levels) and fill themed albums to earn rewards. <strong>My job was to design where it lived and how it worked end to end.</strong>
-            </p>
-          </AltRow>
+      <AltRow
+        id="section-role"
+        eyebrow="My role"
+        title="Design the mechanic's home and everything inside it.">
+        <p>
+          The game designer came up with the Albums mechanic. Players find photos hidden across all the events (including the Tower levels) and fill themed albums to earn rewards. <strong>My job was to design where it lived and how it worked end to end.</strong>
+        </p>
+      </AltRow>
 
-          <AltRow
-            id="section-process"
-            flip
-            eyebrow="My process — Research"
-            title="Look at what exists before designing what's next."
-            mediaSrc="museum.png"
-            caption="Albums tab placement within the Museum (wireframe)">
-            <p>
-              Diggy's Adventure is a complex game with a lot of systems, so I started by mapping where players already went to see things they'd earned. The Camp, the game's home screen, had no space for a new destination, which meant I needed to find an existing one. The Museum already housed achievements, trophies and keepsakes: things players had collected or unlocked. That was the right place. Introducing a new destination would have required players to learn a new behaviour. <strong>Placing Albums in the Museum meant zero onboarding cost.</strong>
-            </p>
-          </AltRow>
+      <AltRow
+        id="section-process"
+        flip
+        eyebrow="My process — Research"
+        title="Look at what exists before designing what's next."
+        mediaSrc="museum.png"
+        caption="Albums tab placement within the Museum (wireframe)">
+        <p>
+          Diggy's Adventure is a complex game with a lot of systems, so I started by mapping where players already went to see things they'd earned. The Camp, the game's home screen, had no space for a new destination, which meant I needed to find an existing one. The Museum already housed achievements, trophies and keepsakes: things players had collected or unlocked. That was the right place. Introducing a new destination would have required players to learn a new behaviour. <strong>Placing Albums in the Museum meant zero onboarding cost.</strong>
+        </p>
+      </AltRow>
 
-          <AltRow
-            eyebrow="Format"
-            title="Ground the mechanic in something players already know."
-            mediaSrc="pages.png"
-            caption="Three difficulty tiers mapped to album pages">
-            <p>The photo album format was a deliberate choice. Albums (working title "Collections") was built around the idea of memories, so the design connects to something players already understand in real life: pages, bookmarks, photos spread across a spread.
-            </p>
-            <p>
-              In F2P games players encounter many systems in quick succession. Grounding a new mechanic in something familiar from real life reduces the cognitive effort needed to understand it.
-            </p>
-            <p>
-              <strong>Mapping difficulty to physical pages creates a natural sense of progression.</strong> Easy fills quickly and gives early reward, hard stays empty longest and creates tension.
-            </p>
-          </AltRow>
+      <AltRow
+        eyebrow="Format"
+        title="Ground the mechanic in something players already know."
+        mediaSrc="pages.png"
+        caption="Three difficulty tiers mapped to album pages">
+        <p>The photo album format was a deliberate choice. Albums (working title "Collections") was built around the idea of memories, so the design connects to something players already understand in real life: pages, bookmarks, photos spread across a spread.
+        </p>
+        <p>
+          In F2P games players encounter many systems in quick succession. Grounding a new mechanic in something familiar from real life reduces the cognitive effort needed to understand it.
+        </p>
+        <p>
+          <strong>Mapping difficulty to physical pages creates a natural sense of progression.</strong> Easy fills quickly and gives early reward, hard stays empty longest and creates tension.
+        </p>
+      </AltRow>
 
-          <AltRow
-            flip
-            eyebrow="The joker card"
-            title="Make the monetisation moment feel like a choice."
-            mediaSrc="joker-flow.png"
-            caption="Joker card confirmation flow">
-            <p>
-              The game designer came up with a mechanic where players could fill empty slots they couldn't complete naturally. I had to make it feel like something players would understand instinctively. <strong>I named it the joker card:</strong> everyone knows a joker replaces what you're missing.
-            </p>
-            <p>
-              I designed a <strong>confirmation step:</strong> a deliberate pause that respects player agency. They chose to use it, they weren't tricked into it.
-            </p>
-          </AltRow>
+      <AltRow
+        flip
+        eyebrow="The joker card"
+        title="Make the monetisation moment feel like a choice."
+        mediaSrc="joker-flow.png"
+        caption="Joker card confirmation flow">
+        <p>
+          The game designer came up with a mechanic where players could fill empty slots they couldn't complete naturally. I had to make it feel like something players would understand instinctively. <strong>I named it the joker card:</strong> everyone knows a joker replaces what you're missing.
+        </p>
+        <p>
+          I designed a <strong>confirmation step:</strong> a deliberate pause that respects player agency. They chose to use it, they weren't tricked into it.
+        </p>
+      </AltRow>
 
-          <AltRow
-            eyebrow="Full feature"
-            title="Every state, every edge case."
-            mediaSrc="edge-cases.png"
-            caption="Full feature — states, transitions, edge cases">
-            <p>
-              From there I designed the full feature: the Albums tab IA, every state across the lifecycle (event running, nearing end, completed, ended), the reward collection flows, the joker card confirmation, tooltip behaviour, and the onboarding carousel.
-            </p>
-            <p>Including edge cases like what happens when a player has rewards to collect in both Albums and Achievements at the same time. Achievements has a higher value in the game so that tab opens and the other shows a red notification dot.
-            </p>
-          </AltRow>
+      <AltRow
+        eyebrow="Full feature"
+        title="Every state, every edge case."
+        mediaSrc="edge-cases.png"
+        caption="Full feature — states, transitions, edge cases">
+        <p>
+          From there I designed the full feature: the Albums tab IA, every state across the lifecycle (event running, nearing end, completed, ended), the reward collection flows, the joker card confirmation, tooltip behaviour, and the onboarding carousel.
+        </p>
+        <p>Including edge cases like what happens when a player has rewards to collect in both Albums and Achievements at the same time. Achievements has a higher value in the game so that tab opens and the other shows a red notification dot.
+        </p>
+      </AltRow>
 
-          <Outcome />
-        </main>
-      </div>
+      <Outcome />
       <Closing />
     </>);
 
