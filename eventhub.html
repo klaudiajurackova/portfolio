@@ -2709,9 +2709,9 @@ function HeroFigure() {
   return (
     <div className="cs-shell cs-hero-fig">
       <div className="cs-hero-fig-images">
-        <HeroImage storageKey="eventhub-hero-1" label="Event Hub" />
-        <HeroImage storageKey="eventhub-hero-2" label="Memories" />
-        <HeroImage storageKey="eventhub-hero-3" label="Info Tab" />
+        <img src="event-hub.png" alt="" style={{width:'100%',height:'auto',display:'block'}} />
+        <img src="memories.png" alt="" style={{width:'100%',height:'auto',display:'block'}} />
+        <img src="info-tab.png" alt="" style={{width:'100%',height:'auto',display:'block'}} />
       </div>
     </div>);
 }
@@ -2802,9 +2802,9 @@ function TOC({ items }) {
     </nav>);
 }
 
-function AltRow({ id, eyebrow, title, mediaId, mediaPlaceholder, mediaId2, mediaPlaceholder2, mediaSrc, phoneFrame, inlineImages, children }) {
+function AltRow({ id, eyebrow, title, mediaId, mediaPlaceholder, mediaId2, mediaPlaceholder2, mediaSrc, mediaSrc2, phoneFrame, inlineImages, children }) {
   const ref = useReveal();
-  const hasMedia = phoneFrame || mediaSrc || mediaId;
+  const hasMedia = phoneFrame || mediaSrc || mediaSrc2 || mediaId;
   return (
     <section id={id} className="cs-alt-row reveal" ref={ref}>
       <div className="cs-alt-text">
@@ -2826,15 +2826,15 @@ function AltRow({ id, eyebrow, title, mediaId, mediaPlaceholder, mediaId2, media
         </div>
       ) : (
         <div className="cs-alt-media">
-          {mediaId2 ? (
+          {(mediaSrc2 || mediaId2) ? (
             <div className="cs-alt-media-pair">
-              <HeroImage storageKey={mediaId} label={mediaPlaceholder} />
-              <HeroImage storageKey={mediaId2} label={mediaPlaceholder2} />
+              {mediaSrc ? <img src={mediaSrc} alt="" style={{width:'100%',height:'auto',display:'block',borderRadius:'4px'}} /> : <HeroImage storageKey={mediaId} label={mediaPlaceholder} />}
+              {mediaSrc2 ? <img src={mediaSrc2} alt="" style={{width:'100%',height:'auto',display:'block',borderRadius:'4px'}} /> : <HeroImage storageKey={mediaId2} label={mediaPlaceholder2} />}
             </div>
           ) : mediaSrc ? (
             <img src={mediaSrc} alt="" style={{width:'100%', height:'auto', display:'block', borderRadius:'4px'}} />
           ) : (
-            <image-slot id={mediaId} shape="rect" placeholder={mediaPlaceholder}></image-slot>
+            <HeroImage storageKey={mediaId} label={mediaPlaceholder} />
           )}
         </div>
       ))}
@@ -2910,10 +2910,8 @@ function App() {
         id="section-problem"
         eyebrow="The problem"
         title="Two places to manage events. <em>No memory</em> of playing them."
-        mediaId="eventhub-problem"
-        mediaPlaceholder="Event dropdown"
-        mediaId2="eventhub-problem-2"
-        mediaPlaceholder2="Shop event">
+        mediaSrc="event-dropdown.png"
+        mediaSrc2="shop-event.png">
         <p>
           <strong>Events were scattered across two separate entry points:</strong> a dropdown on the HUD that showed only active events, and an Events tab buried in the Shop for events you could purchase. There was no single place to manage both.
         </p>
@@ -2933,15 +2931,15 @@ function App() {
         <p>
           <strong>Staying familiar.</strong> I started with paper sketches, exploring layout patterns already used elsewhere in Diggy's Adventure. The goal from the beginning was to keep things familiar for players and to <strong>reuse components from the existing design system</strong>, both to stay consistent and to make life easier for the engineering team.
         </p>
-        <div className="cs-step-img"><HeroImage storageKey="eventhub-process-1" label="Drop image" /></div>
+        <div className="cs-step-img"><img src="paper-sketches.png" alt="" style={{width:'100%',height:'auto',display:'block'}} /></div>
         <p>
           <strong>Fixing the scroll problem.</strong> An early version had two horizontal scrolling sections within the same tab. I flagged it as a UX problem and scrapped it. Having two horizontal scrolls in one view asks too much of the player at once. The solution was simpler: one horizontal scroll with Active and Buy More sitting in the same row, separated by a clear visual divider.
         </p>
-        <div className="cs-step-img"><HeroImage storageKey="eventhub-process-2" label="Drop image" /></div>
+        <div className="cs-step-img"><img src="lo-fi.png" alt="" style={{width:'100%',height:'auto',display:'block'}} /></div>
         <p>
           <strong>Getting the order right.</strong> Active events come first because that is what players are already engaged with. Putting purchasable events before them would increase cognitive load and create unnecessary friction between the player and what they actually came to do. Buy More sits right after, visible but not in the way.
         </p>
-        <div className="cs-step-img"><HeroImage storageKey="eventhub-process-3" label="Drop image" /></div>
+        <div className="cs-step-img"><img src="paper-sketches-2.png" alt="" style={{width:'100%',height:'auto',display:'block'}} /></div>
       </AltRow>
 
       <AltRow
@@ -2952,27 +2950,27 @@ function App() {
         <p>
           <strong>Restructuring the Info tab.</strong> The Info tab was cramming everything into one panel with no clear hierarchy. I restructured it by borrowing the speech bubble pattern players already knew from the Quests tab. The achievement badges moved to the top as the most important information, with everything else organised into a cleaner grid beneath.
         </p>
-        <div className="cs-step-img"><HeroImage storageKey="eventhub-screens-2" label="Drop image" /></div>
+        <div className="cs-step-img"><img src="info-tab-before-after.png" alt="" style={{width:'100%',height:'auto',display:'block'}} /></div>
         <p>
           <strong>Fixing the details.</strong> The <strong>dropdown Events button on the HUD</strong> in the Camp was designed to show a list of active events. I replaced it with a single button that opens the Hub directly. I kept it in the same location because players were already used to going there for events.
         </p>
-        <div className="cs-step-img"><HeroImage storageKey="eventhub-screens-fd-1" label="Drop image" /></div>
+        <div className="cs-step-img"><img src="HUD-events-button.png" alt="" style={{width:'100%',height:'auto',display:'block'}} /></div>
         <p>
           The <strong>Shop Events tab</strong> had an Info button where a Buy button should be.
         </p>
-        <div className="cs-step-img"><HeroImage storageKey="eventhub-screens-fd-2" label="Drop image" /></div>
+        <div className="cs-step-img"><img src="shop-event-before-after.png" alt="" style={{width:'100%',height:'auto',display:'block'}} /></div>
         <p>
           The <strong>event cards</strong> needed consistent <strong>states</strong> across active, new, sale phase and reward-ready.
         </p>
-        <div className="cs-step-img"><HeroImage storageKey="eventhub-screens-fd-3" label="Drop image" /></div>
+        <div className="cs-step-img"><img src="event-cards.png" alt="" style={{width:'100%',height:'auto',display:'block'}} /></div>
         <p>
           The <strong>event timer</strong> appeared in a different position on every tab. I unified it: the event name and timer now sit at the top consistently across all tabs.
         </p>
-        <div className="cs-step-img"><HeroImage storageKey="eventhub-screens-fd-4" label="Drop image" /></div>
+        <div className="cs-step-img"><img src="timer.png" alt="" style={{width:'100%',height:'auto',display:'block'}} /></div>
         <p>
           <strong>Designing Memories from scratch.</strong> <strong>There was no history of events anywhere in the game, despite players having been around for years.</strong> I made a deliberate decision to include any event a player has touched, not just completed ones, because players earn achievements and progress through events they never finish, and that should count. Finished date is the default sort because it mirrors how people naturally recall experiences: most recent first.
         </p>
-        <div className="cs-step-img"><HeroImage storageKey="eventhub-screens-4" label="Drop image" /></div>
+        <div className="cs-step-img"><img src="memories.png" alt="" style={{width:'100%',height:'auto',display:'block'}} /></div>
       </AltRow>
 
       <Outcome />
