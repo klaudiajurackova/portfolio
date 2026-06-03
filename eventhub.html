@@ -2799,6 +2799,7 @@ function TOC({ items }) {
 
 function AltRow({ id, eyebrow, title, mediaId, mediaPlaceholder, mediaId2, mediaPlaceholder2, mediaSrc, phoneFrame, inlineImages, children }) {
   const ref = useReveal();
+  const hasMedia = phoneFrame || mediaSrc || mediaId;
   return (
     <section id={id} className="cs-shell cs-alt-row reveal" ref={ref}>
       <div className="cs-alt-text">
@@ -2806,7 +2807,7 @@ function AltRow({ id, eyebrow, title, mediaId, mediaPlaceholder, mediaId2, media
         <h2 className="cs-alt-title" dangerouslySetInnerHTML={{ __html: title }} />
         <div className={`cs-alt-body${inlineImages ? ' cs-alt-body--wide' : ''}`}>{children}</div>
       </div>
-      {(phoneFrame || mediaId) && (phoneFrame ? (
+      {hasMedia && (phoneFrame ? (
         <div className="iphone-wrap">
           <div className="iphone-frame">
             <div className="iphone-island" />
@@ -2825,6 +2826,8 @@ function AltRow({ id, eyebrow, title, mediaId, mediaPlaceholder, mediaId2, media
               <HeroImage storageKey={mediaId} label={mediaPlaceholder} />
               <HeroImage storageKey={mediaId2} label={mediaPlaceholder2} />
             </div>
+          ) : mediaSrc ? (
+            <img src={mediaSrc} alt="" style={{width:'100%', height:'auto', display:'block', borderRadius:'4px'}} />
           ) : (
             <image-slot id={mediaId} shape="rect" placeholder={mediaPlaceholder}></image-slot>
           )}
@@ -2850,7 +2853,7 @@ function Closing() {
     <footer className="cs-shell cs-closing">
       <h2 className="h">
         More work, or<br />
-        <em><a href="mailto:hello@klaudiajurackova.com">say hello</a></em>.
+        <em><a href="mailto:jurackova.klaudia@gmail.com">say hello</a></em>.
       </h2>
       <div className="links">
         <a href="grip.html">
@@ -2865,7 +2868,7 @@ function Closing() {
           <span>Back to portfolio</span>
           <span>↗</span>
         </a>
-        <a href="mailto:hello@klaudiajurackova.com">
+        <a href="mailto:jurackova.klaudia@gmail.com">
           <span>Email Klaudia</span>
           <span>↗</span>
         </a>
