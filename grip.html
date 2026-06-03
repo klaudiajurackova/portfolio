@@ -498,33 +498,32 @@
     }
 
     .pipeline-swim { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .pipeline-swim svg { display: block; width: 100%; min-width: 900px; height: auto; }
-    .ps-band { fill: var(--paper-soft); }
-    .ps-h    { stroke: var(--rule); stroke-width: 1; }
-    .ps-v    { stroke: var(--rule); stroke-width: 1; stroke-dasharray: 3 4; opacity: 0.65; }
-    .ps-v-solid { stroke: var(--rule); stroke-width: 1; }
-    .ps-phase { fill: var(--ink-mute); font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
-    .ps-role  { fill: var(--ink); font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 500; }
+    .pipeline-swim svg { display: block; min-width: 1800px; height: auto; }
+    .ps-v    { stroke: var(--rule); stroke-width: 1; stroke-dasharray: 3 4; opacity: 0.55; }
+    .ps-phase { fill: var(--ink-mute); font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.07em; text-transform: uppercase; }
+    .ps-role  { fill: var(--ink); font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 500; }
     .ps-arrow { fill: none; stroke: var(--ink-mute); stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
-    .ps-rect  { stroke-width: 1.25; }
-    .ps-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.02em; font-weight: 500; }
-    .ps-node.ps-gd   .ps-rect  { fill: var(--paper); stroke: var(--ink); }
-    .ps-node.ps-gd   .ps-label { fill: var(--ink); }
-    .ps-node.ps-ux   .ps-rect  { fill: var(--accent); stroke: var(--accent); }
-    .ps-node.ps-ux   .ps-label { fill: var(--paper); }
-    .ps-node.ps-ui   .ps-rect  { fill: var(--paper); stroke: var(--accent); }
-    .ps-node.ps-ui   .ps-label { fill: var(--accent); }
-    .ps-node.ps-tech .ps-rect  { fill: var(--ink); stroke: var(--ink); }
-    .ps-node.ps-tech .ps-label { fill: var(--paper); }
+    .ps-arrow-loop { fill: none; stroke: var(--ink-faint); stroke-width: 1; stroke-linecap: round; stroke-linejoin: round; }
+    .ps-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.02em; font-weight: 500; }
+    .ps-passed    { font-family: var(--mono); font-size: 8.5px; letter-spacing: 0.06em; fill: var(--ink-faint); }
+    .ps-notpassed { font-family: var(--mono); font-size: 8px; letter-spacing: 0.06em; fill: var(--ink-faint); }
+    .ps-node.ps-process .ps-shape { fill: var(--paper); stroke: var(--ink); stroke-width: 1.25; }
+    .ps-node.ps-process .ps-label { fill: var(--ink); }
+    .ps-node.ps-output  .ps-shape { fill: var(--accent); stroke: none; }
+    .ps-node.ps-output  .ps-label { fill: var(--paper); }
+    .ps-node.ps-review  .ps-shape { fill: var(--ink); stroke: none; }
+    .ps-node.ps-review  .ps-label { fill: var(--paper); }
+    .ps-node.ps-approval .ps-shape { fill: var(--paper-deep); stroke: var(--ink-mute); stroke-width: 1.25; }
+    .ps-node.ps-approval .ps-label { fill: var(--ink-soft); }
     .pipeline-swim-legend {
       display: flex; flex-wrap: wrap; gap: 18px; margin-top: 18px;
       font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-mute);
     }
     .psl-item { display: inline-flex; align-items: center; gap: 8px; }
-    .psl-sw { display: inline-block; width: 18px; height: 12px; border-radius: 2px; border: 1.25px solid var(--ink); background: var(--paper); }
-    .psl-item.ps-ux   .psl-sw { background: var(--accent); border-color: var(--accent); }
-    .psl-item.ps-ui   .psl-sw { background: var(--paper); border-color: var(--accent); }
-    .psl-item.ps-tech .psl-sw { background: var(--ink); border-color: var(--ink); }
+    .psl-sw   { display: inline-block; width: 18px; height: 12px; border-radius: 2px; }
+    .psl-circ { display: inline-block; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+    .psl-dia  { display: inline-block; width: 12px; height: 12px; background: var(--ink); transform: rotate(45deg); flex-shrink: 0; }
+    .psl-para { display: inline-block; width: 20px; height: 12px; background: var(--paper-deep); border: 1.25px solid var(--ink-mute); clip-path: polygon(18% 0%, 100% 0%, 82% 100%, 0% 100%); flex-shrink: 0; }
     @media (max-width: 700px) { .pipeline-swim-legend { gap: 12px; font-size: 9.5px; } }
 
     .doc-template { width: 100%; background: var(--paper); border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; }
@@ -1107,148 +1106,227 @@ function ChartViewer({ label, children }) {
 
 // ── ARTEFACT — Pipeline diagram (swim lanes) ────────────
 function PipelineDiagram() {
-  // Layout constants (kept simple — see SVG below for actual positions)
-  const phases = [
-    "Brief", "Discovery", "GD review", "Lo-fi", "GD review",
-    "Hi-fi", "GD review", "UI design", "UX review", "Sign-off"
-  ];
-  // x-centers per phase (100px columns starting at x=110)
-  const cx = (i) => 160 + i * 100;
+  const UY = 210; // UX track y-center
+  const LY = 420; // UI track y-center
+  const LUP = 90; // y for "not passed" loops above UX track
+  const LDN = 500; // y for "not passed" loops below UI track
 
-  // Nodes: lane index (0..3) + phase index, label
-  const nodes = [
-    { lane: 0, ph: 0, t: "Brief",     v: "gd" },
-    { lane: 1, ph: 1, t: "Discovery", v: "ux" },
-    { lane: 0, ph: 2, t: "GD review", v: "gd" },
-    { lane: 1, ph: 3, t: "Lo-fi",     v: "ux" },
-    { lane: 0, ph: 4, t: "GD review", v: "gd" },
-    { lane: 1, ph: 5, t: "Hi-fi",     v: "ux" },
-    { lane: 0, ph: 6, t: "GD review", v: "gd" },
-    { lane: 2, ph: 7, t: "UI design", v: "ui" },
-    { lane: 1, ph: 8, t: "UX review", v: "ux" },
-    { lane: 0, ph: 9, t: "Sign-off",  v: "gd" },
-    { lane: 3, ph: 9, t: "Build",     v: "tech" }
-  ];
+  // Node shape dimensions
+  const RW = 96, RH = 38;   // rect
+  const CR = 32;              // circle radius
+  const DD = 38;              // diamond half-diagonal
+  const PW = 76, PH = 32, SK = 11; // parallelogram w/h/skew
 
-  // Lane y-centers
-  const ly = [80, 165, 250, 325];
-  // Node positioning (rect top-left and label)
-  const nodeRect = (n) => {
-    const cyVal = ly[n.lane];
-    return { x: cx(n.ph) - 42, y: cyVal - 19, w: 84, h: 38, cx: cx(n.ph), cy: cyVal };
-  };
+  // Edge helpers for arrow attachment
+  const re = (n) => n.x + (n.t==='r'?RW/2 : n.t==='c'?CR : n.t==='d'?DD : PW/2+SK);
+  const le = (n) => n.x - (n.t==='r'?RW/2 : n.t==='c'?CR : n.t==='d'?DD : PW/2+SK);
+  const te = (n) => n.y - (n.t==='r'?RH/2 : n.t==='c'?CR : n.t==='d'?DD : PH/2);
+  const be = (n) => n.y + (n.t==='r'?RH/2 : n.t==='c'?CR : n.t==='d'?DD : PH/2);
 
-  // Arrows — drawn between consecutive nodes through the lane gutter (y=120 or y=210)
-  // Format: [fromIdx, toIdx, viaY]
-  const arrows = [
-    [0, 1, 120],
-    [1, 2, 120],
-    [2, 3, 120],
-    [3, 4, 120],
-    [4, 5, 120],
-    [5, 6, 120],
-    [6, 7, 210], // GD review → UI design (crosses both gutters)
-    [7, 8, 210], // UI design → UX review (back up)
-    [8, 9, 120], // UX review → Sign-off
-    [9, 10, "side"] // Sign-off → Build (down the side)
+  // UX track nodes  (t: r=rect/process, c=circle/deliverable, d=diamond/review, p=para/approval)
+  const UX = [
+    { id:'u0',  x:110,  y:UY, t:'r', label:'research\nprocess' },
+    { id:'u1',  x:305,  y:UY, t:'r', label:'define' },
+    { id:'u2',  x:520,  y:UY, t:'r', label:'Lo-Fi design\nideation' },
+    { id:'u3',  x:720,  y:UY, t:'c', label:'Lo-Fi design\ndraft' },
+    { id:'u4',  x:850,  y:UY, t:'d', label:'Lo-Fi design\nreview' },
+    { id:'u5',  x:960,  y:UY, t:'p', label:'UX/GD' },
+    { id:'u6',  x:1065, y:UY, t:'p', label:'Tech' },
+    { id:'u7',  x:1210, y:UY, t:'r', label:'Hi-Fi design\nideation' },
+    { id:'u8',  x:1410, y:UY, t:'c', label:'Hi-Fi design\ndraft' },
+    { id:'u9',  x:1540, y:UY, t:'d', label:'Hi-Fi design\nreview' },
+    { id:'u10', x:1650, y:UY, t:'p', label:'UX/GD' },
+    { id:'u11', x:1755, y:UY, t:'p', label:'Tech' },
+    { id:'u12', x:1940, y:UY, t:'c', label:'Figma\ndocumentation' },
+    { id:'u13', x:2790, y:UY, t:'r', label:'Implementation\nsupport' },
   ];
 
-  const arrowPath = (fromIdx, toIdx, viaY) => {
-    const a = nodeRect(nodes[fromIdx]);
-    const b = nodeRect(nodes[toIdx]);
+  // UI track nodes
+  const UI = [
+    { id:'l0',  x:110,  y:LY, t:'r', label:'research\nprocess' },
+    { id:'l1',  x:305,  y:LY, t:'r', label:'define' },
+    { id:'l2',  x:1210, y:LY, t:'r', label:'UI concept\nideation' },
+    { id:'l3',  x:1410, y:LY, t:'c', label:'UI concept' },
+    { id:'l4',  x:1540, y:LY, t:'d', label:'UI concept\nreview' },
+    { id:'l5',  x:1650, y:LY, t:'p', label:'UX' },
+    { id:'l6',  x:1750, y:LY, t:'p', label:'GD' },
+    { id:'l7',  x:1850, y:LY, t:'p', label:'Tech' },
+    { id:'l8',  x:2000, y:LY, t:'r', label:'UI final\nideation' },
+    { id:'l9',  x:2140, y:LY, t:'c', label:'final UI' },
+    { id:'l10', x:2270, y:LY, t:'d', label:'final UI\nreview' },
+    { id:'l11', x:2380, y:LY, t:'p', label:'UX' },
+    { id:'l12', x:2480, y:LY, t:'p', label:'GD' },
+    { id:'l13', x:2580, y:LY, t:'p', label:'Tech' },
+    { id:'l14', x:2710, y:LY, t:'c', label:'Figma\ndocumentation' },
+    { id:'l15', x:2790, y:LY, t:'r', label:'Implementation\nsupport' },
+  ];
 
-    if (viaY === "side") {
-      // From Sign-off (right edge) down outside, then into Build (right edge)
-      const sx = a.x + a.w;
-      const sy = a.cy;
-      const ex = b.x + b.w;
-      const ey = b.cy;
-      return `M${sx + 2},${sy} L${sx + 8},${sy} L${sx + 8},${ey} L${ex + 2},${ey}`;
+  // Render a node shape
+  function N(n) {
+    const lines = n.label.split('\n');
+    const lh = 11.5;
+    const ty = n.y - (lines.length - 1) * lh / 2;
+    const texts = lines.map((ln, i) => (
+      <text key={i} className="ps-label" x={n.x} y={ty + i * lh}
+        textAnchor="middle" dominantBaseline="central">{ln}</text>
+    ));
+    if (n.t === 'r') return (
+      <g key={n.id} className="ps-node ps-process">
+        <rect className="ps-shape" x={n.x-RW/2} y={n.y-RH/2} width={RW} height={RH} rx={5} />{texts}
+      </g>
+    );
+    if (n.t === 'c') return (
+      <g key={n.id} className="ps-node ps-output">
+        <circle className="ps-shape" cx={n.x} cy={n.y} r={CR} />{texts}
+      </g>
+    );
+    if (n.t === 'd') {
+      const pts = `${n.x},${n.y-DD} ${n.x+DD},${n.y} ${n.x},${n.y+DD} ${n.x-DD},${n.y}`;
+      return (
+        <g key={n.id} className="ps-node ps-review">
+          <polygon className="ps-shape" points={pts} />{texts}
+        </g>
+      );
     }
+    // parallelogram
+    const hw = PW/2;
+    const pts = `${n.x-hw+SK},${n.y-PH/2} ${n.x+hw+SK},${n.y-PH/2} ${n.x+hw-SK},${n.y+PH/2} ${n.x-hw-SK},${n.y+PH/2}`;
+    return (
+      <g key={n.id} className="ps-node ps-approval">
+        <polygon className="ps-shape" points={pts} />{texts}
+      </g>
+    );
+  }
 
-    // Vertical-out from top or bottom of "from", run along gutter, drop into top/bottom of "to"
-    const fromTop = a.cy < viaY; // node is above the gutter → exit downward
-    const toTop = b.cy < viaY;   // node is above the gutter → enter from below
+  // Horizontal forward arrow, optional "passed" label
+  function A(a, b, passed) {
+    const x1 = re(a) + 2, x2 = le(b) - 2, y = a.y, mx = (x1+x2)/2;
+    return (
+      <g key={`${a.id}-${b.id}`}>
+        <path className="ps-arrow" d={`M${x1},${y} L${x2},${y}`} markerEnd="url(#ps-arr)" />
+        {passed && <text className="ps-passed" x={mx} y={y-5} textAnchor="middle">{passed}</text>}
+      </g>
+    );
+  }
 
-    const sx = a.cx;
-    const sy = fromTop ? a.y + a.h : a.y; // exit
-    const ex = b.cx;
-    const ey = toTop ? b.y + b.h : b.y;   // enter
+  // Column divider x-positions
+  const divs = [215, 410, 640, 1140, 1360, 1660, 2070, 2620, 2770];
 
-    return `M${sx},${sy} L${sx},${viaY} L${ex},${viaY} L${ex},${ey}`;
-  };
+  // Column header [x, label]
+  const hdrs = [
+    [110, 'Research'],
+    [312, 'Design'],
+    [530, 'Lo-Fi design ideation'],
+    [900, 'Lo-Fi draft'],
+    [1250, 'Hi-Fi / UI concept ideation'],
+    [1510, 'Hi-Fi draft / UI concept'],
+    [1865, 'UX Figma doc / UI final ideation'],
+    [2345, 'UI final'],
+    [2695, 'UI Figma doc'],
+    [2830, 'Implementation support'],
+  ];
 
   return (
     <div className="pipeline-swim">
-      <svg
-        viewBox="0 0 1120 380"
-        preserveAspectRatio="xMidYMid meet"
-        role="img"
-        aria-label="UX pipeline swim lanes: brief through sign-off, with build handoff to UI tech">
-
+      <svg viewBox="0 0 2900 570" preserveAspectRatio="xMidYMid meet" role="img"
+        aria-label="UX and UI pipeline: research through implementation support">
         <defs>
           <marker id="ps-arr" viewBox="0 0 10 10" refX="8" refY="5"
-                  markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M2 1 L8 5 L2 9" fill="none"
-                  stroke="context-stroke" strokeWidth="1.5"
-                  strokeLinecap="round" strokeLinejoin="round" />
+            markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1 L8 5 L2 9" fill="none" stroke="context-stroke"
+              strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </marker>
         </defs>
 
-        {/* Lane bands */}
-        <rect className="ps-band" x="110" y="40"  width="1000" height="80" />
-        <rect className="ps-band" x="110" y="210" width="1000" height="80" />
+        {/* Column dividers */}
+        {divs.map(x => <line key={x} className="ps-v" x1={x} y1={28} x2={x} y2={540} />)}
 
-        {/* Horizontal lane rules */}
-        {[40, 120, 210, 290, 360].map((y) => (
-          <line key={y} className="ps-h" x1="0" y1={y} x2="1120" y2={y} />
-        ))}
+        {/* Column headers */}
+        {hdrs.map(([x, l]) => <text key={l} className="ps-phase" x={x} y={16} textAnchor="middle">{l}</text>)}
 
-        {/* Role column divider */}
-        <line className="ps-v-solid" x1="110" y1="0" x2="110" y2="380" />
+        {/* Track labels */}
+        <text className="ps-role" x={52} y={UY} textAnchor="middle" dominantBaseline="central">UX</text>
+        <text className="ps-role" x={52} y={LY} textAnchor="middle" dominantBaseline="central">UI</text>
 
-        {/* Phase column dividers (dashed) */}
-        {[210, 310, 410, 510, 610, 710, 810, 910, 1010].map((x) => (
-          <line key={x} className="ps-v" x1={x} y1="40" x2={x} y2="360" />
-        ))}
+        {/* ── UX forward arrows ── */}
+        {A(UX[0],UX[1])}
+        {A(UX[1],UX[2])}
+        {A(UX[2],UX[3])}
+        {A(UX[3],UX[4])}
+        {A(UX[4],UX[5])}
+        {A(UX[5],UX[6],'passed')}
+        {A(UX[6],UX[7],'passed')}
+        {A(UX[7],UX[8])}
+        {A(UX[8],UX[9])}
+        {A(UX[9],UX[10])}
+        {A(UX[10],UX[11],'passed')}
+        {A(UX[11],UX[12],'passed')}
+        {A(UX[12],UX[13])}
 
-        {/* Phase header labels */}
-        {phases.map((p, i) => (
-          <text key={i} className="ps-phase" x={cx(i)} y="22" textAnchor="middle">{p}</text>
-        ))}
+        {/* ── UI forward arrows ── */}
+        {A(UI[0],UI[1])}
+        {A(UI[1],UI[2])}
+        {A(UI[2],UI[3])}
+        {A(UI[3],UI[4])}
+        {A(UI[4],UI[5])}
+        {A(UI[5],UI[6],'passed')}
+        {A(UI[6],UI[7],'passed')}
+        {A(UI[7],UI[8],'passed')}
+        {A(UI[8],UI[9])}
+        {A(UI[9],UI[10])}
+        {A(UI[10],UI[11])}
+        {A(UI[11],UI[12],'passed')}
+        {A(UI[12],UI[13],'passed')}
+        {A(UI[13],UI[14],'passed')}
+        {A(UI[14],UI[15])}
 
-        {/* Role labels */}
-        {["Game designer", "UX designer", "UI designer", "UI tech"].map((r, i) => (
-          <text key={r} className="ps-role" x="55" y={ly[i]} textAnchor="middle" dominantBaseline="central">{r}</text>
-        ))}
+        {/* ── Loop A: Lo-Fi not passed (UX/GD + Tech → Lo-Fi design ideation) ── */}
+        <path className="ps-arrow-loop" d={`M${UX[5].x},${te(UX[5])} L${UX[5].x},${LUP}`} />
+        <path className="ps-arrow-loop"
+          d={`M${UX[6].x},${te(UX[6])} L${UX[6].x},${LUP} L${UX[2].x},${LUP} L${UX[2].x},${te(UX[2])}`}
+          markerEnd="url(#ps-arr)" />
+        <text className="ps-notpassed" x={UX[5].x} y={LUP-6} textAnchor="middle">not passed</text>
+        <text className="ps-notpassed" x={UX[6].x} y={LUP-6} textAnchor="middle">not passed</text>
 
-        {/* Arrows */}
-        {arrows.map(([f, t, via], i) => (
-          <path
-            key={i}
-            className="ps-arrow"
-            d={arrowPath(f, t, via)}
-            markerEnd="url(#ps-arr)" />
-        ))}
+        {/* ── Loop B: Hi-Fi not passed (UX/GD + Tech → Hi-Fi design ideation) ── */}
+        <path className="ps-arrow-loop" d={`M${UX[10].x},${te(UX[10])} L${UX[10].x},${LUP}`} />
+        <path className="ps-arrow-loop"
+          d={`M${UX[11].x},${te(UX[11])} L${UX[11].x},${LUP} L${UX[7].x},${LUP} L${UX[7].x},${te(UX[7])}`}
+          markerEnd="url(#ps-arr)" />
+        <text className="ps-notpassed" x={UX[10].x} y={LUP-6} textAnchor="middle">not passed</text>
+        <text className="ps-notpassed" x={UX[11].x} y={LUP-6} textAnchor="middle">not passed</text>
 
-        {/* Nodes */}
-        {nodes.map((n, i) => {
-          const r = nodeRect(n);
-          return (
-            <g key={i} className={`ps-node ps-${n.v}`}>
-              <rect className="ps-rect" x={r.x} y={r.y} width={r.w} height={r.h} rx="6" />
-              <text className="ps-label" x={r.cx} y={r.cy} textAnchor="middle" dominantBaseline="central">{n.t}</text>
-            </g>
-          );
-        })}
+        {/* ── Loop C: UI concept not passed (UX + GD + Tech → UI concept ideation) ── */}
+        <path className="ps-arrow-loop" d={`M${UI[5].x},${be(UI[5])} L${UI[5].x},${LDN}`} />
+        <path className="ps-arrow-loop" d={`M${UI[6].x},${be(UI[6])} L${UI[6].x},${LDN}`} />
+        <path className="ps-arrow-loop"
+          d={`M${UI[7].x},${be(UI[7])} L${UI[7].x},${LDN} L${UI[2].x},${LDN} L${UI[2].x},${be(UI[2])}`}
+          markerEnd="url(#ps-arr)" />
+        <text className="ps-notpassed" x={UI[5].x} y={LDN+14} textAnchor="middle">not passed</text>
+        <text className="ps-notpassed" x={UI[6].x} y={LDN+14} textAnchor="middle">not passed</text>
+        <text className="ps-notpassed" x={UI[7].x} y={LDN+14} textAnchor="middle">not passed</text>
+
+        {/* ── Loop D: UI final not passed (UX + GD + Tech → UI final ideation) ── */}
+        <path className="ps-arrow-loop" d={`M${UI[11].x},${be(UI[11])} L${UI[11].x},${LDN}`} />
+        <path className="ps-arrow-loop" d={`M${UI[12].x},${be(UI[12])} L${UI[12].x},${LDN}`} />
+        <path className="ps-arrow-loop"
+          d={`M${UI[13].x},${be(UI[13])} L${UI[13].x},${LDN} L${UI[8].x},${LDN} L${UI[8].x},${be(UI[8])}`}
+          markerEnd="url(#ps-arr)" />
+        <text className="ps-notpassed" x={UI[11].x} y={LDN+14} textAnchor="middle">not passed</text>
+        <text className="ps-notpassed" x={UI[12].x} y={LDN+14} textAnchor="middle">not passed</text>
+        <text className="ps-notpassed" x={UI[13].x} y={LDN+14} textAnchor="middle">not passed</text>
+
+        {/* ── Nodes (drawn on top of arrows) ── */}
+        {UX.map(n => N(n))}
+        {UI.map(n => N(n))}
 
       </svg>
 
       <div className="pipeline-swim-legend">
-        <span className="psl-item ps-gd"><span className="psl-sw" /> Game designer</span>
-        <span className="psl-item ps-ux"><span className="psl-sw" /> UX designer</span>
-        <span className="psl-item ps-ui"><span className="psl-sw" /> UI designer</span>
-        <span className="psl-item ps-tech"><span className="psl-sw" /> UI tech</span>
+        <span className="psl-item"><span className="psl-sw" style={{background:'var(--paper)',border:'1.25px solid var(--ink)'}} /> Process</span>
+        <span className="psl-item"><span className="psl-circ" /> Deliverable</span>
+        <span className="psl-item"><span className="psl-dia" /> Review gate</span>
+        <span className="psl-item"><span className="psl-para" /> Sign-off</span>
       </div>
     </div>
   );
