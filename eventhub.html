@@ -2797,9 +2797,8 @@ function TOC({ items }) {
     </nav>);
 }
 
-function AltRow({ id, eyebrow, title, mediaId, mediaPlaceholder, mediaId2, mediaPlaceholder2, mediaSrc, phoneFrame, inlineImages, children }) {
+function AltRow({ id, eyebrow, title, mediaId, mediaPlaceholder, mediaId2, mediaPlaceholder2, phoneFrame, inlineImages, children }) {
   const ref = useReveal();
-  const hasMedia = phoneFrame || mediaSrc || mediaId;
   return (
     <section id={id} className="cs-shell cs-alt-row reveal" ref={ref}>
       <div className="cs-alt-text">
@@ -2807,7 +2806,7 @@ function AltRow({ id, eyebrow, title, mediaId, mediaPlaceholder, mediaId2, media
         <h2 className="cs-alt-title" dangerouslySetInnerHTML={{ __html: title }} />
         <div className={`cs-alt-body${inlineImages ? ' cs-alt-body--wide' : ''}`}>{children}</div>
       </div>
-      {hasMedia && (phoneFrame ? (
+      {(phoneFrame || mediaId) && (phoneFrame ? (
         <div className="iphone-wrap">
           <div className="iphone-frame">
             <div className="iphone-island" />
@@ -2815,10 +2814,6 @@ function AltRow({ id, eyebrow, title, mediaId, mediaPlaceholder, mediaId2, media
               <HeroImage storageKey={mediaId} label={mediaPlaceholder} />
             </div>
           </div>
-        </div>
-      ) : mediaSrc ? (
-        <div className="cs-alt-media">
-          <img src={mediaSrc} alt="" style={{width:'100%', height:'auto', display:'block', borderRadius:'4px'}} />
         </div>
       ) : (
         <div className="cs-alt-media">
@@ -2890,7 +2885,9 @@ function App() {
         id="section-context"
         eyebrow="Context"
         title="Diggy's <em>Adventure</em>"
-        mediaSrc="DA.png">
+        mediaId="eventhub-context"
+        mediaPlaceholder="DA — drop screenshot"
+        phoneFrame>
         <p>
           Diggy's Adventure is a mobile F2P puzzle game by Pixelfederation. Events are a central part of how the game keeps players engaged. They run on a regular cycle and give players fresh goals outside the main story.
         </p>

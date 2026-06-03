@@ -2855,7 +2855,6 @@ function Details() {
 // ── Alternating row ─────────────────────────────────────
 function AltRow({ id, flip, eyebrow, title, mediaId, mediaPlaceholder, mediaSrc, caption, phoneFrame, children }) {
   const ref = useReveal();
-  const hasMedia = phoneFrame || mediaSrc || mediaId;
   return (
     <section id={id} className={`cs-shell cs-alt-row ${flip ? 'flip' : ''} reveal`} ref={ref}>
       <div className="cs-alt-text">
@@ -2863,28 +2862,26 @@ function AltRow({ id, flip, eyebrow, title, mediaId, mediaPlaceholder, mediaSrc,
         <h2 className="cs-alt-title" dangerouslySetInnerHTML={{ __html: title }} />
         <div className="cs-alt-body">{children}</div>
       </div>
-      {hasMedia && (
-        <div>
-          {phoneFrame ? (
-            <div className="iphone-wrap">
-              <div className="iphone-frame">
-                <div className="iphone-island" />
-                <div className="iphone-screen">
-                  <HeroImage storageKey={mediaId} label={mediaPlaceholder || 'Drop image'} />
-                </div>
+      <div>
+        {phoneFrame ? (
+          <div className="iphone-wrap">
+            <div className="iphone-frame">
+              <div className="iphone-island" />
+              <div className="iphone-screen">
+                <HeroImage storageKey={mediaId} label={mediaPlaceholder || 'Drop image'} />
               </div>
             </div>
-          ) : (
-            <div className="cs-alt-media">
-              {mediaSrc
-                ? <img src={mediaSrc} alt="" style={{width:'100%', height:'auto', display:'block', borderRadius:'4px'}} />
-                : <HeroImage storageKey={mediaId} label="Drop image" />
-              }
-            </div>
-          )}
-          {caption && <p className="cs-alt-caption">{caption}</p>}
-        </div>
-      )}
+          </div>
+        ) : (
+          <div className="cs-alt-media">
+            {mediaSrc
+              ? <img src={mediaSrc} alt="" style={{width:'100%', height:'auto', display:'block', borderRadius:'4px'}} />
+              : <HeroImage storageKey={mediaId} label="Drop image" />
+            }
+          </div>
+        )}
+        {caption && <p className="cs-alt-caption">{caption}</p>}
+      </div>
     </section>);
 
 }
@@ -2958,7 +2955,9 @@ function App() {
         id="section-context"
         eyebrow="Context"
         title="A game with events at its core."
-        mediaSrc="DA.png"
+        mediaId="albums-context"
+        mediaPlaceholder="DA — drop screenshot"
+        phoneFrame
         caption="Diggy's Adventure — the event loop">
         <p>
           Diggy's Adventure is a mobile F2P puzzle game by Pixelfederation. Events are a central part of how the game keeps players engaged. They run on a regular cycle and give players fresh goals outside the main story.
@@ -2983,7 +2982,8 @@ function App() {
       <AltRow
         id="section-role"
         eyebrow="My role"
-        title="Design the mechanic's home and everything inside it.">
+        title="Design the mechanic's home and everything inside it."
+        mediaSrc="albums-museum.png">
         <p>
           The game designer came up with the Albums mechanic. Players find photos hidden across all the events (including the Tower levels) and fill themed albums to earn rewards. <strong>My job was to design where it lived and how it worked end to end.</strong>
         </p>
