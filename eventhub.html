@@ -2030,22 +2030,27 @@ image-slot {
 }
 
 /* ── TOC sidebar ─────────────────────────────────────── */
+.cs-shell.cs-body { max-width: 1200px; }
+.cs-body {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: clamp(40px, 5vw, 80px);
+  align-items: start;
+}
+@media (max-width: 1000px) { .cs-body { grid-template-columns: 1fr; } }
+.cs-prose { min-width: 0; }
 .cs-toc {
-  position: fixed;
+  position: sticky;
   top: 92px;
-  left: max(16px, calc(50vw - 440px - 164px));
-  display: none;
+  display: flex;
   flex-direction: column;
   gap: 4px;
   font-family: var(--mono);
   font-size: 11.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  z-index: 40;
 }
-@media (min-width: 1000px) {
-  .cs-toc { display: flex; }
-}
+@media (max-width: 1000px) { .cs-toc { display: none; } }
 .cs-toc-label {
   font-size: 10px;
   letter-spacing: 0.18em;
@@ -2801,7 +2806,7 @@ function AltRow({ id, eyebrow, title, mediaId, mediaPlaceholder, mediaId2, media
   const ref = useReveal();
   const hasMedia = phoneFrame || mediaSrc || mediaId;
   return (
-    <section id={id} className="cs-shell cs-alt-row reveal" ref={ref}>
+    <section id={id} className="cs-alt-row reveal" ref={ref}>
       <div className="cs-alt-text">
         <span className="cs-alt-eyebrow">{eyebrow}</span>
         <h2 className="cs-alt-title" dangerouslySetInnerHTML={{ __html: title }} />
@@ -2839,7 +2844,7 @@ function AltRow({ id, eyebrow, title, mediaId, mediaPlaceholder, mediaId2, media
 function Outcome() {
   const ref = useReveal();
   return (
-    <section id="section-outcome" className="cs-shell cs-outcome-v2 reveal" ref={ref}>
+    <section id="section-outcome" className="cs-outcome-v2 reveal" ref={ref}>
       <span className="cs-outcome-eyebrow">Outcome</span>
       <p className="cs-outcome-p">
         Two entry points became one. Players no longer had to know where to look. The Hub was simply where events lived. Consolidating discovery, purchase and history into a single coherent space removed the friction that was quietly costing engagement every time a player couldn't find what they were looking for.
@@ -2882,11 +2887,12 @@ function App() {
     <>
       <Progress />
       <TopNav />
-      <TOC items={EVENTHUB_TOC} />
       <Hero />
       <HeroFigure />
       <Details />
-
+      <div className="cs-shell cs-body">
+        <TOC items={EVENTHUB_TOC} />
+        <main className="cs-prose">
       <AltRow
         id="section-context"
         eyebrow="Context"
@@ -2970,6 +2976,8 @@ function App() {
       </AltRow>
 
       <Outcome />
+        </main>
+      </div>
       <Closing />
     </>);
 
