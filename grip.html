@@ -497,8 +497,15 @@
       overflow: auto;
     }
 
-    .pipeline-swim { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .pipeline-swim { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .pipeline-swim svg { display: block; width: 100%; min-width: 900px; height: auto; }
+    /* Desktop: scrollable at readable size */
+    .chart-desktop-direct .pipeline-swim svg { width: 3000px; min-width: unset; height: auto; }
+    /* Modal: start at a size where zoom makes it readable */
+    .chart-modal .pipeline-swim svg { width: 2500px; min-width: unset; height: auto; }
+    /* Mobile preview: show ~1/6 from left, taller */
+    .chart-preview-outer .pipeline-swim svg { width: 2340px; min-width: unset; height: auto; }
+    .chart-preview-outer { height: 380px; }
     .ps-band { fill: var(--paper-soft); }
     .ps-h    { stroke: var(--rule); stroke-width: 1; }
     .ps-v    { stroke: var(--rule); stroke-width: 1; stroke-dasharray: 3 4; opacity: 0.65; }
@@ -821,13 +828,28 @@
     }
     .chart-modal-bar {
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
       align-items: center;
       padding: 12px 16px;
       border-bottom: 1px solid var(--rule);
       flex-shrink: 0;
       background: var(--paper);
     }
+    .chart-zoom-controls { display: flex; align-items: center; gap: 8px; }
+    .chart-zoom-btn {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 1.5px solid var(--ink); background: transparent; color: var(--ink);
+      font-size: 20px; line-height: 1; display: flex; align-items: center;
+      justify-content: center; cursor: pointer;
+      transition: border-color 0.2s ease, color 0.2s ease;
+    }
+    .chart-zoom-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .chart-zoom-pct {
+      font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.1em;
+      color: var(--ink-mute); min-width: 42px; text-align: center;
+      background: none; border: none; cursor: pointer; padding: 0;
+    }
+    .chart-zoom-pct:hover { color: var(--ink); }
     .chart-modal-close {
       width: 36px; height: 36px;
       border-radius: 50%;
@@ -1067,12 +1089,29 @@ function Artefact({ figNum, label, children }) {
 // ── Chart preview + fullscreen modal (mobile only) ──────
 function ChartViewer({ label, children }) {
   const [open, setOpen] = React.useState(false);
+  const [zoom, setZoom] = React.useState(1);
+  const contentRef = React.useRef(null);
+
   React.useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+    setZoom(1);
     return () => { document.body.style.overflow = prev; };
   }, [open]);
+
+  React.useEffect(() => {
+    const el = contentRef.current;
+    if (!el || !open) return;
+    const onWheel = (e) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      setZoom(z => Math.min(4, Math.max(0.25, +(z + (e.deltaY < 0 ? 0.1 : -0.1)).toFixed(2))));
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, [open]);
+
   return (
     <>
       <div className="chart-preview-outer" aria-hidden="true">
@@ -1085,13 +1124,22 @@ function ChartViewer({ label, children }) {
       {open && ReactDOM.createPortal(
         <div className="chart-modal" role="dialog" aria-modal="true" aria-label={label}>
           <div className="chart-modal-bar">
+            <div className="chart-zoom-controls">
+              <button className="chart-zoom-btn" onClick={() => setZoom(z => Math.max(0.25, +(z - 0.25).toFixed(2)))} aria-label="Zoom out">−</button>
+              <button className="chart-zoom-pct" onClick={() => setZoom(1)} title="Reset zoom">{Math.round(zoom * 100)}%</button>
+              <button className="chart-zoom-btn" onClick={() => setZoom(z => Math.min(4, +(z + 0.25).toFixed(2)))} aria-label="Zoom in">+</button>
+            </div>
             <button className="chart-modal-close" onClick={() => setOpen(false)} aria-label="Close">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                 <line x1="1" y1="1" x2="13" y2="13" /><line x1="13" y1="1" x2="1" y2="13" />
               </svg>
             </button>
           </div>
-          <div className="chart-modal-content">{children}</div>
+          <div className="chart-modal-content" ref={contentRef}>
+            <div style={{ zoom: zoom, display: 'inline-block', minWidth: '100%' }}>
+              {children}
+            </div>
+          </div>
           <div className="chart-modal-rotate">
             <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="10" y="6" width="28" height="36" rx="4" />
