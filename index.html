@@ -2584,15 +2584,12 @@ function ProjectCard({ p, i }) {
             <div className="iphone-frame">
               <div className="iphone-island" />
               <div className="iphone-screen">
-                <video ref={el => {
-                  if (!el || el._io) return;
-                  el.muted = true;
-                  el._io = new IntersectionObserver(([e]) => {
-                    if (e.isIntersecting) el.play().catch(() => {});
-                    else el.pause();
-                  }, { threshold: 0.1 });
-                  el._io.observe(el);
-                }} src={p.video} autoPlay loop muted playsInline />
+                <video
+                  ref={el => { if (el) { el.muted = true; el.play().catch(() => {}); } }}
+                  src={p.video}
+                  autoPlay loop muted playsInline preload="auto"
+                  onLoadedData={e => e.target.play().catch(() => {})}
+                />
               </div>
             </div>
           </div>
