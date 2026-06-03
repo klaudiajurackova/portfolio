@@ -873,30 +873,6 @@
     }
     .chart-modal .rm-v2-corner,
     .chart-modal .rm-v2-person { position: static !important; box-shadow: none !important; }
-    .chart-modal-rotate {
-      display: none;
-      flex: 1;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      padding: 40px;
-      text-align: center;
-      color: var(--ink-mute);
-      font-family: var(--mono);
-      font-size: 11px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-    .chart-modal-rotate svg { opacity: 0.4; }
-    @media (orientation: portrait) {
-      .chart-modal .chart-modal-content { display: none; }
-      .chart-modal-rotate { display: flex; }
-    }
-    @media (orientation: landscape) {
-      .chart-modal .chart-modal-content { display: block; }
-      .chart-modal-rotate { display: none; }
-    }
   </style>
   <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
@@ -1102,21 +1078,32 @@ function ChartViewer({ label, children }) {
     if (!open) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    setZoom(1);
-    const timer = setTimeout(() => {
+
+    const calcFit = () => {
       const cont = contentRef.current;
       const inner = innerRef.current;
       if (!cont || !inner) return;
-      const cw = cont.clientWidth;
-      const ch = cont.clientHeight;
+      const savedZoom = inner.style.zoom;
+      inner.style.zoom = 1;
       const iw = inner.scrollWidth;
       const ih = inner.scrollHeight;
+      inner.style.zoom = savedZoom;
       if (!iw || !ih) return;
+      const cw = cont.clientWidth;
+      const ch = cont.clientHeight;
       const fz = Math.min(cw / iw, ch / ih);
       setFitZoom(fz);
       setZoom(fz);
-    }, 50);
-    return () => { document.body.style.overflow = prev; clearTimeout(timer); };
+    };
+
+    setZoom(1);
+    const timer = setTimeout(calcFit, 80);
+    window.addEventListener('resize', calcFit, { passive: true });
+    return () => {
+      document.body.style.overflow = prev;
+      clearTimeout(timer);
+      window.removeEventListener('resize', calcFit);
+    };
   }, [open]);
 
   React.useEffect(() => {
@@ -1187,14 +1174,6 @@ function ChartViewer({ label, children }) {
             <div ref={innerRef} style={{ zoom: zoom, display: 'inline-block', minWidth: '100%' }}>
               {children}
             </div>
-          </div>
-          <div className="chart-modal-rotate">
-            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="10" y="6" width="28" height="36" rx="4" />
-              <path d="M30 42 C38 42 44 36 44 28" />
-              <path d="M41 24 L44 28 L47 24" />
-            </svg>
-            <span>Rotate device to view</span>
           </div>
         </div>,
         document.body
