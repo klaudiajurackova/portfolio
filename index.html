@@ -407,12 +407,16 @@ section:has(#work) .section-head {
 @media (max-width: 700px) {
   .hero-meta { display: none; }
   .hero {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     padding-top: clamp(48px, 10vw, 72px);
-    min-height: calc(100dvh - 64px);
+    padding-bottom: 72px;
+    min-height: calc(100vh - 64px);
+    min-height: calc(var(--inner-vh, 100svh) - 64px);
     position: relative;
-    padding-bottom: 64px;
   }
-  .hero-marquee { display: none; }
+  .hero-marquee { display: none !important; }
 }
 
 .hero-scroll-cue { display: none; }
@@ -2976,6 +2980,15 @@ function App() {
       root.style.setProperty('--paper-deep', shade(t.paper, -0.08));
     }
   }, [t.accent, t.paper, t.density]);
+
+  useEffect(() => {
+    const setVH = () => {
+      document.documentElement.style.setProperty('--inner-vh', window.innerHeight + 'px');
+    };
+    setVH();
+    window.addEventListener('resize', setVH, { passive: true });
+    return () => window.removeEventListener('resize', setVH);
+  }, []);
 
   useEffect(() => {
     const hash = window.location.hash;
