@@ -1095,12 +1095,14 @@ function ChartViewer({ label, children }) {
   const [fitZoom, setFitZoom] = React.useState(1);
   const contentRef = React.useRef(null);
   const innerRef = React.useRef(null);
+  const zoomRef = React.useRef(zoom);
+  React.useEffect(() => { zoomRef.current = zoom; }, [zoom]);
 
   React.useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    setZoom(1); // reset to 1 so measurement below reads natural size
+    setZoom(1);
     const timer = setTimeout(() => {
       const cont = contentRef.current;
       const inner = innerRef.current;
@@ -1120,13 +1122,38 @@ function ChartViewer({ label, children }) {
   React.useEffect(() => {
     const el = contentRef.current;
     if (!el || !open) return;
+
+    // Ctrl+wheel zoom (desktop)
     const onWheel = (e) => {
       if (!e.ctrlKey && !e.metaKey) return;
       e.preventDefault();
       setZoom(z => Math.min(4, Math.max(0.1, +(z + (e.deltaY < 0 ? 0.1 : -0.1)).toFixed(2))));
     };
+
+    // Pinch-to-zoom (mobile)
+    const pinch = { startDist: 0, startZoom: 1 };
+    const getD = (t) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+    const onTouchStart = (e) => {
+      if (e.touches.length === 2) {
+        pinch.startDist = getD(e.touches);
+        pinch.startZoom = zoomRef.current;
+      }
+    };
+    const onTouchMove = (e) => {
+      if (e.touches.length !== 2) return;
+      e.preventDefault();
+      const scale = getD(e.touches) / pinch.startDist;
+      setZoom(Math.min(4, Math.max(0.1, +(pinch.startZoom * scale).toFixed(2))));
+    };
+
     el.addEventListener('wheel', onWheel, { passive: false });
-    return () => el.removeEventListener('wheel', onWheel);
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    return () => {
+      el.removeEventListener('wheel', onWheel);
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+    };
   }, [open]);
 
   return (
@@ -1156,7 +1183,7 @@ function ChartViewer({ label, children }) {
               </svg>
             </button>
           </div>
-          <div className="chart-modal-content" ref={contentRef}>
+          <div className="chart-modal-content" ref={contentRef} style={{ touchAction: 'pan-x pan-y' }}>
             <div ref={innerRef} style={{ zoom: zoom, display: 'inline-block', minWidth: '100%' }}>
               {children}
             </div>
